@@ -2,10 +2,10 @@ import { useState, useMemo } from 'react';
 import ChessBoard from './ChessBoard';
 
 const PIECE_OPTIONS = [
-  { key: 'N', label: 'Knight', symbol: '♘' },
-  { key: 'B', label: 'Bishop', symbol: '♗' },
-  { key: 'R', label: 'Rook', symbol: '♖' },
-  { key: 'Q', label: 'Queen', symbol: '♕' },
+  { key: 'N', label: 'Knight', symbol: '♞' },
+  { key: 'B', label: 'Bishop', symbol: '♝' },
+  { key: 'R', label: 'Rook', symbol: '♜' },
+  { key: 'Q', label: 'Queen', symbol: '♛' },
 ];
 
 export default function PieceSquareMap({ data }) {
@@ -39,20 +39,19 @@ export default function PieceSquareMap({ data }) {
   return (
     <div>
       {/* Piece selector */}
-      <div className="flex flex-wrap items-center gap-2 mb-6">
-        <span className="text-text-muted text-sm mr-2">Piece:</span>
+      <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
         {PIECE_OPTIONS.map((p) => (
           <button
             key={p.key}
             onClick={() => setSelectedPiece(p.key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            title={p.label}
+            className={`flex items-center justify-center w-14 h-14 rounded-xl text-3xl transition-all ${
               selectedPiece === p.key
-                ? 'bg-primary text-dark'
-                : 'bg-card text-text-secondary hover:bg-border'
+                ? 'bg-primary text-dark shadow-lg shadow-primary/30 scale-110'
+                : 'bg-card text-white hover:bg-border hover:scale-105'
             }`}
           >
-            <span className="text-lg">{p.symbol}</span>
-            {p.label}
+            {p.symbol}
           </button>
         ))}
       </div>
@@ -67,11 +66,11 @@ export default function PieceSquareMap({ data }) {
       {/* Legend */}
       <div className="flex flex-wrap items-center justify-center gap-6 mt-6 text-sm text-text-muted">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-3 rounded opacity-70" style={{ backgroundColor: '#81B64C' }} />
+          <div className="w-4 h-3 rounded opacity-70" style={{ backgroundColor: '#BACA44' }} />
           <span>Higher frequency</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-3 rounded opacity-20" style={{ backgroundColor: '#81B64C' }} />
+          <div className="w-4 h-3 rounded opacity-20" style={{ backgroundColor: '#BACA44' }} />
           <span>Lower frequency</span>
         </div>
         <div className="flex items-center gap-2">

@@ -26,15 +26,25 @@ export default function BlunderHeatmap({ data }) {
 
     const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
-    // Color scale: green (low) -> yellow -> red (high)
+    // Color scale: dark green (low) -> yellow-green -> warm red (high)
     const values = data.map((d) => d.value);
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
     const colorScale = d3.scaleSequential()
-      .domain([Math.min(...values), Math.max(...values)])
-      .interpolator(d3.interpolateRdYlGn)
+      .domain([minVal, maxVal])
+      .interpolator(d3.interpolateYlGn)
       .unknown('#333');
 
-    // Invert so green = low blunders, red = high
-    const invertedColor = (val) => colorScale(Math.max(...values) + Math.min(...values) - val);
+    // Darker = higher blunders (inverted: red tones for high, green for low)
+    const invertedColor = (val) => {
+      const t = (val - minVal) / (maxVal - minVal);
+      // Low blunders: green, high blunders: warm orange-red
+      if (t < 0.5) {
+        return d3.interpolate('#2d5016', '#BACA44')(t * 2);
+      } else {
+        return d3.interpolate('#BACA44', '#c0392b')((t - 0.5) * 2);
+      }
+    };
 
     // Draw cells
     data.forEach((d) => {

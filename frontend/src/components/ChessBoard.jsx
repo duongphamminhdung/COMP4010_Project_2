@@ -66,11 +66,11 @@ export default function ChessBoard({ data, title, colorScheme = 'green', showLab
 
       let fill;
       if (colorScheme === 'green') {
-        fill = '#81B64C';
+        fill = '#BACA44';
       } else if (colorScheme === 'diverging') {
         fill = d.count >= 0 ? '#81B64C' : '#e74c3c';
       } else {
-        fill = '#81B64C';
+        fill = '#BACA44';
       }
 
       const normalizedCount = colorScheme === 'diverging'

@@ -1,66 +1,145 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
+import { Chess } from 'chess.js';
 import { PERIOD_ORDER, PERIOD_LABELS } from '../data/mockData';
 
-// Color palette for root-level move families (ebemunk style)
-const ROOT_COLORS = {
-  'e4': '#e74c3c',
-  'd4': '#3498db',
-  'Nf3': '#f39c12',
-  'c4': '#2ecc71',
-  'g3': '#9b59b6',
-  'b3': '#1abc9c',
-  'f4': '#e67e22',
-  'd3': '#16a085',
-  'c3': '#2980b9',
-  'Nc3': '#d35400',
+// Color palette for root-level move families (ebemunk uses schemeCategory10)
+const ROOT_COLORS = d3.scaleOrdinal(d3.schemeCategory10);
+
+// Prune tree to keep only the top N most popular moves at each depth
+function pruneTree(node, depth = 0) {
+  if (!node.children || !node.children.length) return node;
+  const sorted = [...node.children].sort((a, b) => (b.count || 0) - (a.count || 0));
+  const limit = depth === 0 ? 10 : 5;
+  const kept = sorted.slice(0, limit);
+  return {
+    ...node,
+    children: kept.map(c => pruneTree(c, depth + 1)),
+  };
+}
+
+// Piece SVGs for the mini board (unicode)
+const PIECE_UNICODE = {
+  K: '\u2654', Q: '\u2655', R: '\u2656', B: '\u2657', N: '\u2658', P: '\u2659',
+  k: '\u265A', q: '\u265B', r: '\u265C', b: '\u265D', n: '\u265E', p: '\u265F',
 };
 
-function getRootColor(san) {
-  return ROOT_COLORS[san] || '#7f8c8d';
+// Simple FEN parser -> piece positions
+function fenToPieces(fen) {
+  const board = [];
+  const rows = fen.split(' ')[0].split('/');
+  for (let r = 0; r < 8; r++) {
+    let col = 0;
+    for (const ch of rows[r]) {
+      if (ch >= '1' && ch <= '8') {
+        col += parseInt(ch);
+      } else {
+        board.push({ piece: ch, row: r, col });
+        col++;
+      }
+    }
+  }
+  return board;
 }
 
-function getArcFill(d, colors) {
-  if (d.depth === 0) return '#2a2a2a';
-  // Find the root-level ancestor to get the family color
-  let rootParent = d;
-  while (rootParent.parent && rootParent.parent.depth > 0) {
-    rootParent = rootParent.parent;
-  }
-  const base = d3.hsl(getRootColor(rootParent.data.san));
-  if (d.depth % 2 === 0) {
-    base.l = Math.max(0.2, base.l - 0.08);
-  } else {
-    base.l = Math.min(0.7, base.l + 0.08);
-  }
-  base.s = Math.max(0.3, base.s - d.depth * 0.04);
-  return base.toString();
-}
-
-function getParents(node) {
+// Get the path of SAN moves from root to this node
+function getMovePath(d) {
   const path = [];
-  let current = node;
-  while (current.parent) {
-    path.unshift(current);
-    current = current.parent;
+  let node = d;
+  while (node.parent && node.depth > 0) {
+    path.unshift(node.data.san);
+    node = node.parent;
   }
   return path;
+}
+
+// Get FEN from a sequence of SAN moves
+function movesToFen(moves) {
+  const chess = new Chess();
+  for (const move of moves) {
+    try {
+      chess.move(move);
+    } catch {
+      break;
+    }
+  }
+  return chess.fen();
+}
+
+function getArcFill(d) {
+  if (d.depth === 0) return '#2a2a2a';
+  // Find the root-level ancestor (depth 1) for the family color
+  let rootParent = d;
+  while (rootParent.depth > 1) {
+    rootParent = rootParent.parent;
+  }
+  const base = d3.hsl(ROOT_COLORS(rootParent.data.san));
+  let color;
+  if (d.depth % 2 === 0) {
+    color = base.darker(0.5);
+  } else {
+    color = base.brighter(0.5);
+  }
+  color = color.darker(d.depth * 0.15);
+  return color.toString();
+}
+
+// Mini chess board SVG renderer inside the sunburst center
+function drawMiniBoard(svgGroup, fen, boardSize) {
+  const sqSize = boardSize / 8;
+  svgGroup.selectAll('*').remove();
+
+  // Board squares
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const isLight = (row + col) % 2 === 0;
+      svgGroup.append('rect')
+        .attr('x', col * sqSize)
+        .attr('y', row * sqSize)
+        .attr('width', sqSize)
+        .attr('height', sqSize)
+        .attr('fill', isLight ? '#f0d9b5' : '#b58863');
+    }
+  }
+
+  // Pieces — larger and clearer
+  const pieces = fenToPieces(fen);
+  pieces.forEach(p => {
+    svgGroup.append('text')
+      .attr('x', p.col * sqSize + sqSize / 2)
+      .attr('y', p.row * sqSize + sqSize * 0.82)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', sqSize * 0.85)
+      .attr('font-family', 'serif')
+      .attr('fill', p.piece === p.piece.toUpperCase() ? '#fff' : '#000')
+      .attr('stroke', p.piece === p.piece.toUpperCase() ? '#000' : '#fff')
+      .attr('stroke-width', 1)
+      .attr('paint-order', 'stroke')
+      .attr('pointer-events', 'none')
+      .text(PIECE_UNICODE[p.piece]);
+  });
 }
 
 export default function OpeningTree({ data }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
-  const [selectedPeriod, setSelectedPeriod] = useState('modern');
+  const tooltipRef = useRef(null);
+  const boardGroupRef = useRef(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('pre-ai');
   const [hoverInfo, setHoverInfo] = useState(null);
 
   const treeRoot = useMemo(() => {
-    return data[selectedPeriod];
+    const raw = data[selectedPeriod];
+    if (!raw) return null;
+    return pruneTree(raw);
   }, [data, selectedPeriod]);
 
-  // Compute total game count for percentage display
   const totalGames = useMemo(() => {
     if (!treeRoot) return 1;
-    return treeRoot.children ? d3.sum(treeRoot.children, c => c.count || c.value) : 1;
+    // Sum all leaf counts to get total
+    const root = d3.hierarchy(treeRoot)
+      .sum(d => (d.children && d.children.length) ? 0 : (d.count || 0));
+    return root.value || 1;
   }, [treeRoot]);
 
   const render = useCallback(() => {
@@ -68,123 +147,145 @@ export default function OpeningTree({ data }) {
 
     const container = containerRef.current;
     const containerWidth = container.clientWidth;
-    const size = Math.min(containerWidth, 600);
+    const size = Math.min(containerWidth, 1100);
     const radius = size / 2;
+    const pad = 20;
+
+    // Board fits in center: size it relative to the sunburst
+    const boardSize = radius * 0.45;
+    const innerR = boardSize / 2 + 6; // gap between board edge and first arc ring
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
-    svg.attr('width', size).attr('height', size);
+    svg
+      .attr('width', size)
+      .attr('height', size)
+      .attr('viewBox', [-size / 2, -size / 2, size, size]);
 
-    const g = svg.append('g')
-      .attr('transform', `translate(${radius},${radius})`);
-
-    // d3.partition layout
-    const partition = d3.partition()
-      .size([2 * Math.PI, radius]);
-
+    // Build hierarchy -- sum only leaf counts (matching ebemunk: children.length ? 0 : count)
     const root = d3.hierarchy(treeRoot)
-      .sum(d => d.count || 0)
-      .sort((a, b) => b.value - a.value);
+      .sum(d => (d.children && d.children.length) ? 0 : (d.count || 0))
+      .sort((a, b) => b.height - a.height || b.value - a.value);
 
-    partition(root);
+    d3.partition().size([2 * Math.PI, radius - pad])(root);
 
-    const arcThreshold = 0.008;
-    const textThreshold = 0.04;
+    // Radius scale: offset so arcs start outside the board area
+    const rScale = d3.scaleLinear()
+      .domain([0, radius])
+      .range([innerR, radius - pad]);
 
-    const visibleNodes = root.descendants().filter(d => d.depth > 0 && (d.x1 - d.x0) > arcThreshold);
-
-    // Arc generator
-    const xScale = d3.scaleLinear().range([0, 2 * Math.PI]);
-    const yScale = d3.scaleSqrt().range([0, radius]);
-
+    // Arc generator (matching ebemunk exactly)
     const arcGen = d3.arc()
-      .startAngle(d => Math.max(0, Math.min(2 * Math.PI, xScale(d.x0))))
-      .endAngle(d => Math.max(0, Math.min(2 * Math.PI, xScale(d.x1))))
-      .innerRadius(d => Math.max(0, yScale(d.y0)))
-      .outerRadius(d => Math.max(0, yScale(d.y1)))
-      .padAngle(0.005)
-      .padRadius(radius / 2);
+      .startAngle(d => d.x0)
+      .endAngle(d => d.x1)
+      .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+      .padRadius(radius / 4)
+      .innerRadius(d => rScale(d.y0))
+      .outerRadius(d => rScale(d.y1 - 1));
 
     // Draw arcs
-    const arcs = g.selectAll('.arc')
-      .data(visibleNodes)
+    const arcs = svg.append('g')
+      .selectAll('path')
+      .data(root.descendants().filter(d => d.depth))
       .join('path')
-      .attr('class', 'arc')
-      .attr('d', arcGen)
       .attr('fill', d => getArcFill(d))
-      .attr('stroke', '#1A1A1A')
-      .attr('stroke-width', 0.5)
-      .attr('opacity', 0.9)
-      .attr('cursor', 'pointer')
-      .on('mouseenter', function (event, d) {
-        const parents = getParents(d);
+      .attr('stroke', 'white')
+      .attr('stroke-width', 2)
+      .attr('stroke-opacity', 0)
+      .attr('d', arcGen);
 
-        arcs.transition().duration(150)
-          .style('opacity', node => parents.indexOf(node) > -1 ? 1 : 0.2);
+    // Board size set above — reuse for center chessboard
+    const startingFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-        d3.select(this).attr('stroke', 'white').attr('stroke-width', 2);
+    // Mini chessboard in center (drawn first so arcs render on top if they overlap)
+    const boardGroup = svg.append('g')
+      .attr('transform', `translate(${-boardSize / 2}, ${-boardSize / 2})`)
+      .attr('class', 'board')
+      .attr('pointer-events', 'none');
 
-        const movePath = parents.map(p => p.data.san).join(' > ');
-        const pct = ((d.value / totalGames) * 100).toFixed(1);
-        const moveNum = Math.floor((d.depth - 1) / 2) + 1;
-        const prefix = d.depth % 2 === 1 ? `${moveNum}. ` : `${moveNum}... `;
-        setHoverInfo({
-          move: d.data.san,
-          fullMove: prefix + d.data.san,
-          path: movePath,
-          count: d.value,
-          pct,
-        });
-      })
-      .on('mouseleave', function () {
-        arcs.transition().duration(300).style('opacity', 0.9);
-        d3.select(this).attr('stroke', '#1A1A1A').attr('stroke-width', 0.5);
-        setHoverInfo(null);
+    boardGroupRef.current = boardGroup;
+    drawMiniBoard(boardGroup, startingFen, boardSize);
+
+    // Tooltip div
+    const tooltip = d3.select(tooltipRef.current);
+    tooltip.style('display', 'none');
+
+    // Hover interaction (matching ebemunk exactly)
+    arcs.on('mouseenter', function (event, d) {
+      // Highlight ancestor path
+      const ancestors = d.ancestors();
+      arcs.filter(node => ancestors.indexOf(node) > -1)
+        .classed('highlighted', true);
+
+      // Build the move sequence to get FEN
+      const movePath = getMovePath(d);
+      const fen = movesToFen(movePath);
+
+      // Update center board
+      drawMiniBoard(boardGroup, fen, boardSize);
+
+      // Build tooltip content (matching ebemunk format)
+      const moveNum = Math.ceil(d.depth / 2).toString() + (d.depth % 2 === 0 ? '...' : '.');
+      const count = d.value;
+      const pctOfTotal = d3.format('.2p')(count / totalGames);
+      const countFormatted = d3.format(',')(count);
+      const totalFormatted = d3.format(',')(totalGames);
+      const pctOfParent = d.parent ? d3.format('.2p')(count / d.parent.value) : '100%';
+
+      setHoverInfo({
+        move: d.data.san,
+        fullMove: `${moveNum} ${d.data.san}`,
+        path: movePath.join(' '),
+        count: countFormatted,
+        total: totalFormatted,
+        pctOfTotal,
+        pctOfParent,
+        fen,
       });
 
-    // Text labels on arcs (only for large enough arcs)
-    g.selectAll('.arc-label')
-      .data(visibleNodes.filter(d => (d.x1 - d.x0) > textThreshold && (d.y1 - d.y0) > 12))
-      .join('text')
-      .attr('class', 'arc-label')
-      .attr('transform', d => {
-        const angle = (d.x0 + d.x1) / 2;
-        const r = (yScale(d.y0) + yScale(d.y1)) / 2;
-        const x = Math.sin(angle) * r;
-        const y = -Math.cos(angle) * r;
-        const rot = (angle * 180 / Math.PI) - 90 + (angle > Math.PI ? 180 : 0);
-        return `translate(${x},${y}) rotate(${rot})`;
-      })
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'middle')
-      .attr('fill', 'white')
-      .attr('font-size', d => Math.min(11, (d.y1 - d.y0) * 0.35) + 'px')
-      .attr('font-weight', '600')
+      // Show tooltip near mouse
+      tooltip.style('display', 'flex')
+        .style('left', (event.offsetX + 15) + 'px')
+        .style('top', (event.offsetY - 10) + 'px')
+        .html(`
+          <span><strong>${moveNum} ${d.data.san}</strong></span>
+          <span>${countFormatted} of ${totalFormatted} (${pctOfTotal})</span>
+          <span>${pctOfParent} of parent</span>
+        `);
+    }).on('mousemove', function (event) {
+      tooltip
+        .style('left', (event.offsetX + 15) + 'px')
+        .style('top', (event.offsetY - 10) + 'px');
+    }).on('mouseleave', function (event, d) {
+      const ancestors = d.ancestors();
+      arcs.filter(node => ancestors.indexOf(node) > -1)
+        .classed('highlighted', false);
+
+      // Reset center board to starting position
+      drawMiniBoard(boardGroup, startingFen, boardSize);
+
+      tooltip.style('display', 'none');
+      setHoverInfo(null);
+    });
+
+    // Text labels on arcs (matching ebemunk: x1-x0 > 0.1 threshold)
+    svg.append('g')
       .attr('pointer-events', 'none')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', 12)
+      .attr('font-family', 'Inter, sans-serif')
+      .attr('fill', 'white')
+      .selectAll('text')
+      .data(root.descendants().filter(d => d.depth && (d.x1 - d.x0) > 0.1))
+      .join('text')
+      .attr('transform', function (d) {
+        const angle = (d.x0 + d.x1) / 2 * 180 / Math.PI;
+        const r = rScale((d.y0 + d.y1) / 2);
+        const rot = angle - 90;
+        return `rotate(${rot}) translate(${r},0) rotate(${-rot})`;
+      })
+      .attr('dy', '0.35em')
       .text(d => d.data.san);
-
-    // Center circle
-    g.append('circle')
-      .attr('r', yScale(root.y1) * 0.15)
-      .attr('fill', '#1A1A1A')
-      .attr('stroke', '#3D3B38')
-      .attr('stroke-width', 1);
-
-    // Center text
-    const centerR = yScale(root.y1) * 0.15;
-    g.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('dy', '-0.3em')
-      .attr('fill', '#A0A0A0')
-      .attr('font-size', `${Math.max(9, centerR * 0.35)}px`)
-      .text('Opening');
-    g.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('dy', '1em')
-      .attr('fill', '#81B64C')
-      .attr('font-size', `${Math.max(10, centerR * 0.4)}px`)
-      .attr('font-weight', '700')
-      .text('Tree');
 
   }, [treeRoot, totalGames]);
 
@@ -198,7 +299,7 @@ export default function OpeningTree({ data }) {
   return (
     <div>
       {/* Period toggle */}
-      <div className="flex flex-wrap items-center gap-2 mb-6">
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
         <span className="text-text-muted text-sm mr-2">Period:</span>
         {PERIOD_ORDER.map((p) => (
           <button
@@ -215,23 +316,32 @@ export default function OpeningTree({ data }) {
         ))}
       </div>
 
-      {/* Sunburst chart */}
-      <div ref={containerRef} className="flex justify-center">
+      {/* Sunburst chart container */}
+      <div ref={containerRef} className="flex justify-center relative">
         <svg ref={svgRef} />
+        {/* Tooltip */}
+        <div
+          ref={tooltipRef}
+          className="absolute pointer-events-none z-10 bg-card border border-border rounded px-3 py-2 text-xs flex flex-col items-start gap-0.5 text-white"
+          style={{ display: 'none' }}
+        />
       </div>
 
-      {/* Hover info panel */}
+      {/* Hover info panel below chart */}
       <div className="mt-4 min-h-[48px]">
         {hoverInfo ? (
-          <div className="bg-card rounded-lg px-4 py-3 border border-border inline-block">
+          <div className="bg-card rounded-lg px-4 py-3 border border-border inline-block mx-auto">
             <p className="text-white font-semibold text-sm">
               {hoverInfo.fullMove}
             </p>
             <p className="text-text-secondary text-xs mt-1">
               Path: {hoverInfo.path}
             </p>
+            <p className="text-text-secondary text-xs mt-0.5">
+              {hoverInfo.count} of {hoverInfo.total} ({hoverInfo.pctOfTotal})
+            </p>
             <p className="text-primary text-xs mt-0.5">
-              {hoverInfo.pct}% of all games ({hoverInfo.count.toLocaleString()} games)
+              {hoverInfo.pctOfParent} of parent
             </p>
           </div>
         ) : (
@@ -241,15 +351,31 @@ export default function OpeningTree({ data }) {
         )}
       </div>
 
-      {/* Legend: first move colors */}
+      {/* Legend: first move colors from actual data */}
       <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
-        {['e4', 'd4', 'Nf3', 'c4', 'g3'].map(move => (
-          <div key={move} className="flex items-center gap-1.5 text-xs text-text-muted">
-            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getRootColor(move) }} />
-            <span>1. {move}</span>
+        {(treeRoot?.children || []).slice(0, 10).map(child => (
+          <div key={child.san} className="flex items-center gap-1.5 text-xs text-text-muted">
+            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: ROOT_COLORS(child.san) }} />
+            <span>1. {child.san}</span>
           </div>
         ))}
       </div>
+
+      {/* Inline styles matching ebemunk */}
+      <style>{`
+        path {
+          stroke: white;
+          stroke-width: 2;
+          stroke-opacity: 0;
+          transition: stroke-opacity 0.15s ease;
+        }
+        path.highlighted {
+          stroke-opacity: 1;
+        }
+        .board {
+          pointer-events: none;
+        }
+      `}</style>
     </div>
   );
 }
