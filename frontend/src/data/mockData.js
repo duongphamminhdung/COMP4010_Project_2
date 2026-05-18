@@ -20,115 +20,149 @@ export const PERIOD_COLORS = {
 export const ELO_BRACKETS = ['0-1000', '1000-1400', '1400-1800', '1800-2200', '2200-2600', '2600+'];
 
 // ============================================================
-// 1. Opening Tree Data
+// 1. Opening Tree Data (hierarchical for sunburst/partition)
 // ============================================================
-// Format: array of { ply, san, count, period }
-// ply 0 = white's first move, ply 1 = black's reply, etc.
+// Format: nested { san, children: [{ san, count, children: [...] }] }
+// Each period gets its own tree root.
 
-function generateOpeningTreeData() {
-  const data = [];
+function buildOpeningTree(moveSequences) {
+  // moveSequences: array of { moves: ['e4','e5','Nf3',...], count: N }
+  const root = { san: 'root', children: [] };
 
-  // Top moves at each ply, with realistic frequencies
-  const movesByPly = {
-    'pre-ai': [
-      // ply 0: white's first move
-      [
-        { san: 'e4', count: 55000 },
-        { san: 'd4', count: 30000 },
-        { san: 'Nf3', count: 7000 },
-        { san: 'c4', count: 5000 },
-        { san: 'g3', count: 1500 },
-        { san: 'other', count: 1500 },
-      ],
-      // ply 1: black's reply
-      [
-        { san: 'e5', count: 22000 }, { san: 'c5', count: 18000 }, { san: 'e6', count: 7000 },
-        { san: 'c6', count: 4000 }, { san: 'd5', count: 3000 }, { san: 'other', count: 1000 },
-        // d4 responses
-        { san: 'd5', count: 14000 }, { san: 'Nf6', count: 10000 }, { san: 'e6', count: 4000 },
-        { san: 'f5', count: 1000 }, { san: 'other', count: 1000 },
-      ],
-      // ply 2
-      [
-        { san: 'Nf3', count: 18000 }, { san: 'Bc4', count: 3000 }, { san: 'f4', count: 1000 },
-        { san: 'Nc3', count: 7000 }, { san: 'd4', count: 12000 }, { san: 'Nf3', count: 8000 },
-        { san: 'c4', count: 7000 }, { san: 'Nc3', count: 5000 }, { san: 'other', count: 3000 },
-      ],
-      // ply 3
-      [
-        { san: 'Nc6', count: 14000 }, { san: 'Nf6', count: 4000 },
-        { san: 'd6', count: 10000 }, { san: 'e6', count: 5000 }, { san: 'a6', count: 3000 },
-        { san: 'Nf6', count: 8000 }, { san: 'e6', count: 5000 }, { san: 'other', count: 4000 },
-      ],
-      // ply 4
-      [
-        { san: 'Bb5', count: 8000 }, { san: 'Bc4', count: 4000 }, { san: 'd4', count: 6000 },
-        { san: 'Bg5', count: 5000 }, { san: 'Nc3', count: 4000 }, { san: 'other', count: 3000 },
-      ],
-    ],
-    'modern': [
-      // ply 0: e4 has dropped, d4/c4/Nf3 risen
-      [
-        { san: 'e4', count: 48000 },
-        { san: 'd4', count: 32000 },
-        { san: 'Nf3', count: 9000 },
-        { san: 'c4', count: 7500 },
-        { san: 'g3', count: 2500 },
-        { san: 'other', count: 1000 },
-      ],
-      // ply 1
-      [
-        { san: 'e5', count: 15000 }, { san: 'c5', count: 20000 }, { san: 'e6', count: 8000 },
-        { san: 'c6', count: 3000 }, { san: 'd5', count: 1500 }, { san: 'other', count: 500 },
-        { san: 'd5', count: 15000 }, { san: 'Nf6', count: 11000 }, { san: 'e6', count: 4000 },
-        { san: 'f5', count: 1200 }, { san: 'other', count: 800 },
-      ],
-      // ply 2
-      [
-        { san: 'Nf3', count: 12000 }, { san: 'Nc3', count: 3000 },
-        { san: 'd4', count: 15000 }, { san: 'Nf3', count: 5000 },
-        { san: 'c4', count: 8000 }, { san: 'Nc3', count: 6000 }, { san: 'Nf3', count: 9000 },
-        { san: 'other', count: 3000 },
-      ],
-      // ply 3
-      [
-        { san: 'Nc6', count: 10000 }, { san: 'd6', count: 12000 }, { san: 'Nf6', count: 5000 },
-        { san: 'e6', count: 6000 }, { san: 'a6', count: 4000 },
-        { san: 'Nf6', count: 9000 }, { san: 'e6', count: 6000 }, { san: 'other', count: 5000 },
-      ],
-      // ply 4
-      [
-        { san: 'Bb5', count: 9000 }, { san: 'd4', count: 8000 }, { san: 'Bc4', count: 3000 },
-        { san: 'Bg5', count: 6000 }, { san: 'Nc3', count: 5000 }, { san: 'other', count: 4000 },
-      ],
-    ],
-  };
-
-  for (const [period, plies] of Object.entries(movesByPly)) {
-    plies.forEach((moves, ply) => {
-      moves.forEach((m) => {
-        data.push({ ply, san: m.san, count: m.count, period });
-      });
-    });
+  for (const seq of moveSequences) {
+    let node = root;
+    for (const move of seq.moves) {
+      let child = node.children.find(c => c.san === move);
+      if (!child) {
+        child = { san: move, count: 0, children: [] };
+        node.children.push(child);
+      }
+      child.count += seq.count;
+      node = child;
+    }
   }
 
-  // Fill in the other two periods (interpolate)
-  for (const period of ['early-post-ai', 'nnue-era']) {
-    const preAi = data.filter((d) => d.period === 'pre-ai');
-    const modern = data.filter((d) => d.period === 'modern');
-    const factor = period === 'early-post-ai' ? 0.3 : 0.7;
-    preAi.forEach((pre, i) => {
-      const mod = modern[i] || pre;
-      data.push({
-        ply: pre.ply,
-        san: pre.san,
-        count: Math.round(pre.count + (mod.count - pre.count) * factor),
-        period,
-      });
-    });
+  // Clean up: remove children arrays from leaves
+  function clean(node) {
+    if (node.children && node.children.length === 0) {
+      delete node.children;
+    } else if (node.children) {
+      node.children.forEach(clean);
+    }
   }
+  clean(root);
 
-  return data;
+  return root;
+}
+
+function getPreAiSequences() {
+  return [
+    // 1. e4 lines
+    { moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5'], count: 12000 },
+    { moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4'], count: 4000 },
+    { moves: ['e4', 'e5', 'Nf3', 'Nc6', 'd4'], count: 2000 },
+    { moves: ['e4', 'e5', 'Nf3', 'd6', 'd4'], count: 3000 },
+    { moves: ['e4', 'e5', 'Nf3', 'Nf6', 'Nxe5'], count: 2500 },
+    { moves: ['e4', 'e5', 'Bc4', 'Nf6', 'd3'], count: 2000 },
+    { moves: ['e4', 'e5', 'Bc4', 'Nc6', 'c3'], count: 1500 },
+    { moves: ['e4', 'e5', 'f4', 'exf4', 'Nf3'], count: 1800 },
+    { moves: ['e4', 'c5', 'Nf3', 'd6', 'd4'], count: 8000 },
+    { moves: ['e4', 'c5', 'Nf3', 'Nc6', 'd4'], count: 5500 },
+    { moves: ['e4', 'c5', 'Nc3', 'Nf6', 'd4'], count: 2500 },
+    { moves: ['e4', 'c5', 'c3', 'Nf6', 'e5'], count: 1500 },
+    { moves: ['e4', 'e6', 'd4', 'd5', 'Nc3'], count: 3500 },
+    { moves: ['e4', 'e6', 'd4', 'd5', 'Nd2'], count: 2000 },
+    { moves: ['e4', 'c6', 'd4', 'd5', 'Nc3'], count: 2500 },
+    { moves: ['e4', 'c6', 'd4', 'd5', 'e5'], count: 1000 },
+    { moves: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3'], count: 2000 },
+    { moves: ['e4', 'd5', 'exd5', 'Nf6', 'c4'], count: 800 },
+    { moves: ['e4', 'Nf6', 'e5', 'Nd5', 'd4'], count: 1500 },
+    // 1. d4 lines
+    { moves: ['d4', 'd5', 'c4', 'e6', 'Nc3'], count: 6000 },
+    { moves: ['d4', 'd5', 'c4', 'e6', 'Nf3'], count: 3500 },
+    { moves: ['d4', 'd5', 'c4', 'c6', 'Nc3'], count: 2500 },
+    { moves: ['d4', 'd5', 'c4', 'dxc4', 'e3'], count: 1500 },
+    { moves: ['d4', 'd5', 'Nf3', 'Nf6', 'e3'], count: 2000 },
+    { moves: ['d4', 'Nf6', 'c4', 'e6', 'Nc3'], count: 4000 },
+    { moves: ['d4', 'Nf6', 'c4', 'g6', 'Nc3'], count: 3000 },
+    { moves: ['d4', 'Nf6', 'c4', 'e6', 'Nf3'], count: 2000 },
+    { moves: ['d4', 'Nf6', 'Nf3', 'e6', 'c4'], count: 1500 },
+    { moves: ['d4', 'e6', 'c4', 'Nf6', 'Nc3'], count: 1500 },
+    { moves: ['d4', 'f5', 'c4', 'Nf6', 'g3'], count: 800 },
+    // 1. Nf3 lines
+    { moves: ['Nf3', 'd5', 'g3', 'Nf6', 'Bg2'], count: 2500 },
+    { moves: ['Nf3', 'Nf6', 'g3', 'g6', 'Bg2'], count: 2000 },
+    { moves: ['Nf3', 'c5', 'g3', 'Nc6', 'Bg2'], count: 1500 },
+    // 1. c4 lines
+    { moves: ['c4', 'e5', 'Nc3', 'Nf6', 'g3'], count: 1500 },
+    { moves: ['c4', 'c5', 'Nf3', 'Nf6', 'g3'], count: 1200 },
+    { moves: ['c4', 'Nf6', 'Nc3', 'e5', 'g3'], count: 1000 },
+    { moves: ['c4', 'e6', 'Nc3', 'd5', 'd4'], count: 800 },
+    // 1. g3
+    { moves: ['g3', 'd5', 'Bg2', 'Nf6', 'Nf3'], count: 800 },
+    { moves: ['g3', 'Nf6', 'Bg2', 'd5', 'Nf3'], count: 500 },
+  ];
+}
+
+function getModernSequences() {
+  return [
+    // 1. e4 lines (slightly different weights)
+    { moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5'], count: 11000 },
+    { moves: ['e4', 'e5', 'Nf3', 'Nc6', 'd4'], count: 3500 },
+    { moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4'], count: 3000 },
+    { moves: ['e4', 'e5', 'Nf3', 'd6', 'd4'], count: 3500 },
+    { moves: ['e4', 'e5', 'Nf3', 'Nf6', 'Nxe5'], count: 2800 },
+    { moves: ['e4', 'e5', 'Bc4', 'Nf6', 'd3'], count: 2200 },
+    { moves: ['e4', 'e5', 'Bc4', 'Nc6', 'c3'], count: 1800 },
+    { moves: ['e4', 'e5', 'f4', 'exf4', 'Nf3'], count: 1500 },
+    { moves: ['e4', 'c5', 'Nf3', 'd6', 'd4'], count: 9500 },
+    { moves: ['e4', 'c5', 'Nf3', 'Nc6', 'd4'], count: 6000 },
+    { moves: ['e4', 'c5', 'Nc3', 'Nf6', 'd4'], count: 3000 },
+    { moves: ['e4', 'c5', 'c3', 'Nf6', 'e5'], count: 2000 },
+    { moves: ['e4', 'e6', 'd4', 'd5', 'Nc3'], count: 3800 },
+    { moves: ['e4', 'e6', 'd4', 'd5', 'Nd2'], count: 2200 },
+    { moves: ['e4', 'e6', 'd4', 'd5', 'exd5'], count: 1200 },
+    { moves: ['e4', 'c6', 'd4', 'd5', 'Nc3'], count: 2200 },
+    { moves: ['e4', 'c6', 'd4', 'd5', 'e5'], count: 1100 },
+    { moves: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3'], count: 1800 },
+    { moves: ['e4', 'd5', 'exd5', 'Nf6', 'c4'], count: 900 },
+    { moves: ['e4', 'Nf6', 'e5', 'Nd5', 'd4'], count: 1600 },
+    // 1. d4 lines (higher counts)
+    { moves: ['d4', 'd5', 'c4', 'e6', 'Nc3'], count: 6500 },
+    { moves: ['d4', 'd5', 'c4', 'e6', 'Nf3'], count: 3800 },
+    { moves: ['d4', 'd5', 'c4', 'c6', 'Nc3'], count: 2800 },
+    { moves: ['d4', 'd5', 'c4', 'dxc4', 'e3'], count: 1600 },
+    { moves: ['d4', 'd5', 'Nf3', 'Nf6', 'e3'], count: 2200 },
+    { moves: ['d4', 'Nf6', 'c4', 'e6', 'Nc3'], count: 5000 },
+    { moves: ['d4', 'Nf6', 'c4', 'g6', 'Nc3'], count: 3500 },
+    { moves: ['d4', 'Nf6', 'c4', 'e6', 'Nf3'], count: 2500 },
+    { moves: ['d4', 'Nf6', 'Nf3', 'e6', 'c4'], count: 1800 },
+    { moves: ['d4', 'Nf6', 'Nf3', 'd5', 'c4'], count: 1200 },
+    { moves: ['d4', 'e6', 'c4', 'Nf6', 'Nc3'], count: 1800 },
+    { moves: ['d4', 'f5', 'c4', 'Nf6', 'g3'], count: 1000 },
+    // 1. Nf3 lines (higher)
+    { moves: ['Nf3', 'd5', 'g3', 'Nf6', 'Bg2'], count: 3500 },
+    { moves: ['Nf3', 'Nf6', 'g3', 'g6', 'Bg2'], count: 2500 },
+    { moves: ['Nf3', 'c5', 'g3', 'Nc6', 'Bg2'], count: 2000 },
+    // 1. c4 lines (higher)
+    { moves: ['c4', 'e5', 'Nc3', 'Nf6', 'g3'], count: 2200 },
+    { moves: ['c4', 'c5', 'Nf3', 'Nf6', 'g3'], count: 1800 },
+    { moves: ['c4', 'Nf6', 'Nc3', 'e5', 'g3'], count: 1500 },
+    { moves: ['c4', 'e6', 'Nc3', 'd5', 'd4'], count: 1200 },
+    // 1. g3 (higher)
+    { moves: ['g3', 'd5', 'Bg2', 'Nf6', 'Nf3'], count: 1200 },
+    { moves: ['g3', 'Nf6', 'Bg2', 'd5', 'Nf3'], count: 800 },
+  ];
+}
+
+function interpolateSequences(pre, mod, factor) {
+  const result = [];
+  for (const p of pre) {
+    const m = mod.find(s => s.moves.join(',') === p.moves.join(','));
+    const count = Math.round(p.count + ((m ? m.count : p.count) - p.count) * factor);
+    result.push({ moves: [...p.moves], count });
+  }
+  return result;
 }
 
 // ============================================================
@@ -316,5 +350,12 @@ export function getGameLengthData() {
 // ============================================================
 
 export function getOpeningTreeData() {
-  return generateOpeningTreeData();
+  const pre = getPreAiSequences();
+  const mod = getModernSequences();
+  return {
+    'pre-ai': buildOpeningTree(pre),
+    'early-post-ai': buildOpeningTree(interpolateSequences(pre, mod, 0.3)),
+    'nnue-era': buildOpeningTree(interpolateSequences(pre, mod, 0.7)),
+    'modern': buildOpeningTree(mod),
+  };
 }

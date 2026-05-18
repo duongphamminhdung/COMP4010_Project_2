@@ -1,193 +1,199 @@
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
-import { PERIOD_ORDER, PERIOD_COLORS, PERIOD_LABELS } from '../data/mockData';
+import { PERIOD_ORDER, PERIOD_LABELS } from '../data/mockData';
+
+// Color palette for root-level move families (ebemunk style)
+const ROOT_COLORS = {
+  'e4': '#e74c3c',
+  'd4': '#3498db',
+  'Nf3': '#f39c12',
+  'c4': '#2ecc71',
+  'g3': '#9b59b6',
+  'b3': '#1abc9c',
+  'f4': '#e67e22',
+  'd3': '#16a085',
+  'c3': '#2980b9',
+  'Nc3': '#d35400',
+};
+
+function getRootColor(san) {
+  return ROOT_COLORS[san] || '#7f8c8d';
+}
+
+function getArcFill(d, colors) {
+  if (d.depth === 0) return '#2a2a2a';
+  // Find the root-level ancestor to get the family color
+  let rootParent = d;
+  while (rootParent.parent && rootParent.parent.depth > 0) {
+    rootParent = rootParent.parent;
+  }
+  const base = d3.hsl(getRootColor(rootParent.data.san));
+  if (d.depth % 2 === 0) {
+    base.l = Math.max(0.2, base.l - 0.08);
+  } else {
+    base.l = Math.min(0.7, base.l + 0.08);
+  }
+  base.s = Math.max(0.3, base.s - d.depth * 0.04);
+  return base.toString();
+}
+
+function getParents(node) {
+  const path = [];
+  let current = node;
+  while (current.parent) {
+    path.unshift(current);
+    current = current.parent;
+  }
+  return path;
+}
 
 export default function OpeningTree({ data }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 1000, height: 500 });
   const [selectedPeriod, setSelectedPeriod] = useState('modern');
-  const [selectedPath, setSelectedPath] = useState([]);
-  const [hoveredNode, setHoveredNode] = useState(null);
+  const [hoverInfo, setHoverInfo] = useState(null);
 
-  // Process data into tree structure
-  const treeData = useMemo(() => {
-    const periodData = data.filter((d) => d.period === selectedPeriod);
-    const byPly = d3.group(periodData, (d) => d.ply);
-
-    const maxPly = Math.max(...byPly.keys());
-    const columns = [];
-
-    for (let ply = 0; ply <= Math.min(maxPly, 4); ply++) {
-      const moves = (byPly.get(ply) || [])
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 8);
-
-      const total = d3.sum(moves, (d) => d.count);
-
-      columns.push({
-        ply,
-        moves: moves.map((m) => ({
-          ...m,
-          pct: ((m.count / total) * 100).toFixed(1),
-        })),
-        total,
-      });
-    }
-
-    return columns;
+  const treeRoot = useMemo(() => {
+    return data[selectedPeriod];
   }, [data, selectedPeriod]);
 
-  // Responsive sizing
-  useEffect(() => {
-    const observe = () => {
-      if (containerRef.current) {
-        const { width } = containerRef.current.getBoundingClientRect();
-        setDimensions({ width: Math.max(width, 600), height: Math.min(500, Math.max(350, width * 0.45)) });
-      }
-    };
-    observe();
-    const ro = new ResizeObserver(observe);
-    if (containerRef.current) ro.observe(containerRef.current);
-    return () => ro.disconnect();
-  }, []);
+  // Compute total game count for percentage display
+  const totalGames = useMemo(() => {
+    if (!treeRoot) return 1;
+    return treeRoot.children ? d3.sum(treeRoot.children, c => c.count || c.value) : 1;
+  }, [treeRoot]);
 
-  // D3 rendering
-  useEffect(() => {
-    if (!svgRef.current || treeData.length === 0) return;
+  const render = useCallback(() => {
+    if (!svgRef.current || !treeRoot) return;
+
+    const container = containerRef.current;
+    const containerWidth = container.clientWidth;
+    const size = Math.min(containerWidth, 600);
+    const radius = size / 2;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
+    svg.attr('width', size).attr('height', size);
 
-    const { width, height } = dimensions;
-    const margin = { top: 40, right: 30, bottom: 20, left: 60 };
-    const innerW = width - margin.left - margin.right;
-    const innerH = height - margin.top - margin.bottom;
+    const g = svg.append('g')
+      .attr('transform', `translate(${radius},${radius})`);
 
-    const g = svg
-      .attr('width', width)
-      .attr('height', height)
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
+    // d3.partition layout
+    const partition = d3.partition()
+      .size([2 * Math.PI, radius]);
 
-    const numColumns = treeData.length;
-    const colWidth = innerW / numColumns;
-    const gap = 2;
+    const root = d3.hierarchy(treeRoot)
+      .sum(d => d.count || 0)
+      .sort((a, b) => b.value - a.value);
 
-    // Color scale: green for white moves (even ply), darker for black moves (odd ply)
-    const whiteMoveColor = '#81B64C';
-    const blackMoveColor = '#4a6e2a';
-    const highlightColor = '#BACA44';
-    const dimColor = '#333333';
+    partition(root);
 
-    // Compute positions for each move block
-    const positionedMoves = [];
+    const arcThreshold = 0.008;
+    const textThreshold = 0.04;
 
-    treeData.forEach((col, colIdx) => {
-      const total = col.total;
-      let y = 0;
+    const visibleNodes = root.descendants().filter(d => d.depth > 0 && (d.x1 - d.x0) > arcThreshold);
 
-      col.moves.forEach((move) => {
-        const blockH = (move.count / total) * innerH - gap;
-        positionedMoves.push({
-          ...move,
-          ply: col.ply,
-          colIdx,
-          x: colIdx * colWidth,
-          y,
-          width: colWidth - 8,
-          height: Math.max(blockH, 4),
-          isWhite: col.ply % 2 === 0,
-        });
-        y += blockH + gap;
-      });
-    });
+    // Arc generator
+    const xScale = d3.scaleLinear().range([0, 2 * Math.PI]);
+    const yScale = d3.scaleSqrt().range([0, radius]);
 
-    // Draw ply labels
-    g.selectAll('.ply-label')
-      .data(treeData)
-      .join('text')
-      .attr('class', 'ply-label')
-      .attr('x', (d, i) => i * colWidth + colWidth / 2)
-      .attr('y', -15)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#A0A0A0')
-      .attr('font-size', '13px')
-      .attr('font-weight', '600')
-      .text((d) => `Ply ${d.ply}`);
+    const arcGen = d3.arc()
+      .startAngle(d => Math.max(0, Math.min(2 * Math.PI, xScale(d.x0))))
+      .endAngle(d => Math.max(0, Math.min(2 * Math.PI, xScale(d.x1))))
+      .innerRadius(d => Math.max(0, yScale(d.y0)))
+      .outerRadius(d => Math.max(0, yScale(d.y1)))
+      .padAngle(0.005)
+      .padRadius(radius / 2);
 
-    // Draw move blocks
-    const blocks = g
-      .selectAll('.move-block')
-      .data(positionedMoves)
-      .join('rect')
-      .attr('class', 'move-block')
-      .attr('x', (d) => d.x + 4)
-      .attr('y', (d) => d.y)
-      .attr('width', (d) => d.width)
-      .attr('height', (d) => d.height)
-      .attr('rx', 3)
-      .attr('fill', (d) => (d.isWhite ? whiteMoveColor : blackMoveColor))
-      .attr('opacity', 0.85)
+    // Draw arcs
+    const arcs = g.selectAll('.arc')
+      .data(visibleNodes)
+      .join('path')
+      .attr('class', 'arc')
+      .attr('d', arcGen)
+      .attr('fill', d => getArcFill(d))
+      .attr('stroke', '#1A1A1A')
+      .attr('stroke-width', 0.5)
+      .attr('opacity', 0.9)
       .attr('cursor', 'pointer')
       .on('mouseenter', function (event, d) {
-        d3.select(this).attr('opacity', 1).attr('fill', highlightColor);
-        setHoveredNode(d);
+        const parents = getParents(d);
+
+        arcs.transition().duration(150)
+          .style('opacity', node => parents.indexOf(node) > -1 ? 1 : 0.2);
+
+        d3.select(this).attr('stroke', 'white').attr('stroke-width', 2);
+
+        const movePath = parents.map(p => p.data.san).join(' > ');
+        const pct = ((d.value / totalGames) * 100).toFixed(1);
+        const moveNum = Math.floor((d.depth - 1) / 2) + 1;
+        const prefix = d.depth % 2 === 1 ? `${moveNum}. ` : `${moveNum}... `;
+        setHoverInfo({
+          move: d.data.san,
+          fullMove: prefix + d.data.san,
+          path: movePath,
+          count: d.value,
+          pct,
+        });
       })
-      .on('mouseleave', function (event, d) {
-        d3.select(this)
-          .attr('opacity', 0.85)
-          .attr('fill', d.isWhite ? whiteMoveColor : blackMoveColor);
-        setHoveredNode(null);
+      .on('mouseleave', function () {
+        arcs.transition().duration(300).style('opacity', 0.9);
+        d3.select(this).attr('stroke', '#1A1A1A').attr('stroke-width', 0.5);
+        setHoverInfo(null);
       });
 
-    // Move name labels on blocks (only if block is tall enough)
-    g.selectAll('.move-label')
-      .data(positionedMoves.filter((d) => d.height > 18))
+    // Text labels on arcs (only for large enough arcs)
+    g.selectAll('.arc-label')
+      .data(visibleNodes.filter(d => (d.x1 - d.x0) > textThreshold && (d.y1 - d.y0) > 12))
       .join('text')
-      .attr('class', 'move-label')
-      .attr('x', (d) => d.x + d.width / 2 + 4)
-      .attr('y', (d) => d.y + d.height / 2)
+      .attr('class', 'arc-label')
+      .attr('transform', d => {
+        const angle = (d.x0 + d.x1) / 2;
+        const r = (yScale(d.y0) + yScale(d.y1)) / 2;
+        const x = Math.sin(angle) * r;
+        const y = -Math.cos(angle) * r;
+        const rot = (angle * 180 / Math.PI) - 90 + (angle > Math.PI ? 180 : 0);
+        return `translate(${x},${y}) rotate(${rot})`;
+      })
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'middle')
-      .attr('fill', d => d.height > 30 ? 'white' : '#ddd')
-      .attr('font-size', d => d.height > 30 ? '13px' : '11px')
+      .attr('fill', 'white')
+      .attr('font-size', d => Math.min(11, (d.y1 - d.y0) * 0.35) + 'px')
       .attr('font-weight', '600')
       .attr('pointer-events', 'none')
-      .text((d) => `${d.san} ${d.pct}%`);
+      .text(d => d.data.san);
 
-    // Draw connection curves between adjacent columns
-    for (let colIdx = 0; colIdx < treeData.length - 1; colIdx++) {
-      const currentCol = positionedMoves.filter((d) => d.colIdx === colIdx);
-      const nextCol = positionedMoves.filter((d) => d.colIdx === colIdx + 1);
+    // Center circle
+    g.append('circle')
+      .attr('r', yScale(root.y1) * 0.15)
+      .attr('fill', '#1A1A1A')
+      .attr('stroke', '#3D3B38')
+      .attr('stroke-width', 1);
 
-      currentCol.forEach((src) => {
-        // Distribute flow proportionally to next column
-        let nextY = src.y;
-        const proportionalHeight = (src.count / treeData[colIdx].total) * innerH;
+    // Center text
+    const centerR = yScale(root.y1) * 0.15;
+    g.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '-0.3em')
+      .attr('fill', '#A0A0A0')
+      .attr('font-size', `${Math.max(9, centerR * 0.35)}px`)
+      .text('Opening');
+    g.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '1em')
+      .attr('fill', '#81B64C')
+      .attr('font-size', `${Math.max(10, centerR * 0.4)}px`)
+      .attr('font-weight', '700')
+      .text('Tree');
 
-        nextCol.forEach((tgt) => {
-          const tgtProportion = tgt.count / treeData[colIdx + 1].total;
-          const flowH = proportionalHeight * tgtProportion * 0.3;
+  }, [treeRoot, totalGames]);
 
-          if (flowH > 1) {
-            const x1 = src.x + src.width + 4;
-            const x2 = tgt.x + 4;
-            const y1 = nextY + flowH / 2;
-            const y2 = tgt.y + tgt.height / 2;
-
-            g.append('path')
-              .attr('d', `M${x1},${y1} C${x1 + (x2 - x1) * 0.5},${y1} ${x1 + (x2 - x1) * 0.5},${y2} ${x2},${y2}`)
-              .attr('fill', 'none')
-              .attr('stroke', src.isWhite ? whiteMoveColor : blackMoveColor)
-              .attr('stroke-width', Math.min(flowH, 8))
-              .attr('opacity', 0.12);
-          }
-          nextY += (tgt.count / treeData[colIdx + 1].total) * proportionalHeight;
-        });
-      });
-    }
-  }, [treeData, dimensions]);
+  useEffect(() => {
+    render();
+    const ro = new ResizeObserver(() => render());
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [render]);
 
   return (
     <div>
@@ -197,7 +203,7 @@ export default function OpeningTree({ data }) {
         {PERIOD_ORDER.map((p) => (
           <button
             key={p}
-            onClick={() => setSelectedPeriod(p)}
+            onClick={() => { setSelectedPeriod(p); setHoverInfo(null); }}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               selectedPeriod === p
                 ? 'bg-primary text-dark'
@@ -209,47 +215,40 @@ export default function OpeningTree({ data }) {
         ))}
       </div>
 
-      {/* Breadcrumb path */}
-      {selectedPath.length > 0 && (
-        <div className="flex items-center gap-1 mb-4 text-sm text-text-secondary">
-          {selectedPath.map((move, i) => (
-            <span key={i} className="flex items-center gap-1">
-              {i > 0 && <span className="text-text-muted">&gt;</span>}
-              <span className="bg-card px-2 py-0.5 rounded text-white">{move}</span>
-            </span>
-          ))}
-          <button
-            onClick={() => setSelectedPath([])}
-            className="ml-2 text-primary hover:underline"
-          >
-            Clear
-          </button>
-        </div>
-      )}
-
-      {/* SVG container */}
-      <div ref={containerRef} className="w-full overflow-x-auto">
-        <svg ref={svgRef} className="w-full" />
+      {/* Sunburst chart */}
+      <div ref={containerRef} className="flex justify-center">
+        <svg ref={svgRef} />
       </div>
 
-      {/* Hover tooltip */}
-      {hoveredNode && (
-        <div className="mt-3 text-sm text-text-secondary">
-          <span className="text-white font-semibold">{hoveredNode.san}</span>
-          {' '}— {hoveredNode.pct}% of games at this ply ({hoveredNode.count.toLocaleString()} games)
-        </div>
-      )}
+      {/* Hover info panel */}
+      <div className="mt-4 min-h-[48px]">
+        {hoverInfo ? (
+          <div className="bg-card rounded-lg px-4 py-3 border border-border inline-block">
+            <p className="text-white font-semibold text-sm">
+              {hoverInfo.fullMove}
+            </p>
+            <p className="text-text-secondary text-xs mt-1">
+              Path: {hoverInfo.path}
+            </p>
+            <p className="text-primary text-xs mt-0.5">
+              {hoverInfo.pct}% of all games ({hoverInfo.count.toLocaleString()} games)
+            </p>
+          </div>
+        ) : (
+          <p className="text-text-muted text-sm text-center">
+            Hover over the chart to explore opening lines
+          </p>
+        )}
+      </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-6 mt-4 text-sm text-text-muted">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-3 rounded" style={{ backgroundColor: '#81B64C' }} />
-          <span>White moves</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-3 rounded" style={{ backgroundColor: '#4a6e2a' }} />
-          <span>Black moves</span>
-        </div>
+      {/* Legend: first move colors */}
+      <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
+        {['e4', 'd4', 'Nf3', 'c4', 'g3'].map(move => (
+          <div key={move} className="flex items-center gap-1.5 text-xs text-text-muted">
+            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getRootColor(move) }} />
+            <span>1. {move}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
