@@ -1,0 +1,25 @@
+# Claude
+CLAUDE.md
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Data files (large CSVs from Lichess)
+*.csv
+*.pgn
+*.zst
+
+# Environment
+.env
+.env.local
