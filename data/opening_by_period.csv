@@ -1,0 +1,41 @@
+period,opening,count,pct
+pre-ai,Sicilian,3774,11.92
+pre-ai,French,2264,7.15
+pre-ai,Queen's Pawn,1656,5.23
+pre-ai,Caro-Kann,1086,3.43
+pre-ai,English,1321,4.17
+pre-ai,King's Indian,1057,3.34
+pre-ai,Zukertort,1144,3.61
+pre-ai,Queen's Gambit Declined,889,2.81
+pre-ai,Scandinavian,1047,3.31
+pre-ai,Indian,627,1.98
+early-post-ai,Sicilian,4001,12.78
+early-post-ai,French,1869,5.97
+early-post-ai,Queen's Pawn,1757,5.61
+early-post-ai,Caro-Kann,1345,4.3
+early-post-ai,English,1418,4.53
+early-post-ai,King's Indian,1238,3.96
+early-post-ai,Zukertort,1154,3.69
+early-post-ai,Queen's Gambit Declined,846,2.7
+early-post-ai,Scandinavian,904,2.89
+early-post-ai,Indian,933,2.98
+nnue-era,Sicilian,5153,16.52
+nnue-era,French,1787,5.73
+nnue-era,Queen's Pawn,1731,5.55
+nnue-era,Caro-Kann,1724,5.53
+nnue-era,English,1544,4.95
+nnue-era,King's Indian,1201,3.85
+nnue-era,Zukertort,1014,3.25
+nnue-era,Queen's Gambit Declined,1189,3.81
+nnue-era,Scandinavian,899,2.88
+nnue-era,Indian,1085,3.48
+modern,Sicilian,4945,15.73
+modern,French,1920,6.11
+modern,Queen's Pawn,2195,6.98
+modern,Caro-Kann,1988,6.33
+modern,English,1511,4.81
+modern,King's Indian,1146,3.65
+modern,Zukertort,945,3.01
+modern,Queen's Gambit Declined,1138,3.62
+modern,Scandinavian,908,2.89
+modern,Indian,1021,3.25
