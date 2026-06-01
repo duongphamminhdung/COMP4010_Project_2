@@ -16,7 +16,7 @@ const OPENING_COLORS = {
   'French Defense': '#1E90FF',
   'Caro-Kann Defense': '#fbbf24',
   'Queen\'s Gambit': '#34d399',
-  'Italian Game': '#e2e8f0',
+  'Italian Game': '#C0C0C0',
 };
 
 const FALLBACK_COLORS = ['#c084fc', '#38bdf8', '#fb7185', '#a3e635'];
