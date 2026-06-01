@@ -14,7 +14,7 @@ import {
 const OPENING_COLORS = {
   'Sicilian Defense': '#DC143C',
   'French Defense': '#1E90FF',
-  'Caro-Kann Defense': '#fbbf24',
+  'Caro-Kann Defense': '#f59e0b',
   'Queen\'s Gambit': '#34d399',
   'Italian Game': '#C0C0C0',
 };
