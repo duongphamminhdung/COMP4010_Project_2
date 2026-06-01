@@ -135,22 +135,39 @@ export default function GameLength({ data }) {
 
       {summaries.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
-          {summaries.map(({ period, medianPly, total }) => (
-            <div
-              key={period}
-              className="rounded-lg border border-border bg-card/40 px-3 py-2"
-            >
-              <div className="text-xs font-medium" style={{ color: PERIOD_COLORS[period] }}>
-                {period}
+          {summaries.map(({ period, medianPly, total }) => {
+            const baseMedian = summaries[0]?.medianPly ?? medianPly;
+            const deltaMoves = (medianPly - baseMedian) / 2;
+            const isBaseline = period === PERIOD_ORDER[0];
+            return (
+              <div
+                key={period}
+                className="rounded-lg border border-border bg-card/40 px-3 py-2"
+              >
+                <div className="text-xs font-medium" style={{ color: PERIOD_COLORS[period] }}>
+                  {period}
+                </div>
+                <div className="mt-1 text-lg font-bold text-white tabular-nums">
+                  {(medianPly / 2).toFixed(1)} moves
+                </div>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {isBaseline ? (
+                    <span className="text-[11px] text-text-muted">Baseline</span>
+                  ) : (
+                    <span
+                      className="text-[11px] font-semibold tabular-nums"
+                      style={{ color: deltaMoves <= 0 ? '#4ade80' : '#f87171' }}
+                    >
+                      {deltaMoves > 0 ? '+' : ''}{deltaMoves.toFixed(1)} moves vs Pre-AI
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-text-muted mt-0.5">
+                  {total.toLocaleString()} games
+                </div>
               </div>
-              <div className="mt-1 text-lg font-bold text-white tabular-nums">
-                {(medianPly / 2).toFixed(1)} moves
-              </div>
-              <div className="text-[11px] text-text-muted">
-                Median · {total.toLocaleString()} games
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -195,7 +212,7 @@ export default function GameLength({ data }) {
                   dataKey={p}
                   stroke={PERIOD_COLORS[p]}
                   fill={PERIOD_COLORS[p]}
-                  fillOpacity={0.08}
+                  fillOpacity={0.18}
                   strokeWidth={2.5}
                   dot={false}
                   activeDot={{ r: 4 }}
@@ -208,7 +225,7 @@ export default function GameLength({ data }) {
               dataKey="count"
               stroke="#4ade80"
               fill="#4ade80"
-              fillOpacity={0.08}
+              fillOpacity={0.18}
               strokeWidth={2.5}
               dot={false}
               activeDot={{ r: 4 }}
