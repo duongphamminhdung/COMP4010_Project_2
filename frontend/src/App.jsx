@@ -7,7 +7,6 @@ import OpeningTree from './components/OpeningTree';
 import OpeningRevolution from './components/OpeningRevolution';
 import OpeningSimulator from './components/OpeningSimulator';
 import EraTimeline from './components/EraTimeline';
-import MaterialCurve from './components/MaterialCurve';
 import BlunderHeatmap from './components/BlunderHeatmap';
 import PieceSquareMap from './components/PieceSquareMap';
 import GameLength from './components/GameLength';
@@ -75,6 +74,7 @@ function App() {
           { label: 'Why', text: 'A wider branch means more players chose that line.' },
           { label: 'Explore', text: 'Switch eras and hover to compare repertoire depth.' },
         ]}
+        discussion={'The sunburst reveals that the top-level branching structure (1.e4 vs 1.d4) stayed remarkably stable across all four eras. What changed is the depth and diversity of popular lines: post-AI eras show slightly thinner trees at deeper levels, suggesting players converged more quickly onto engine-approved continuations rather than exploring independently. The "Other" slices also shrink over time, indicating a narrowing of the collective opening repertoire.'}
       >
         <OpeningTree data={data.openingTree} />
       </Section>
@@ -89,6 +89,7 @@ function App() {
           { label: 'Why', text: 'Slopes show which openings gained or lost share after AI.' },
           { label: 'Explore', text: 'Use the 2017 and 2020 markers as AI reference points.' },
         ]}
+        discussion={"The Sicilian Defense maintained its position as the most popular response to 1.e4 across all eras, but the slopes after 2020 show a subtle flattening. The Queen's Gambit gained ground steadily, likely because streaming and engine recommendations made it more approachable. The Italian Game saw a modest resurgence post-NNUE, reflecting how engine evaluations rehabilitated older, classical systems that had fallen out of fashion. The real story is not that openings changed dramatically, but that the distribution became slightly more even as players broadened their repertoires."}
       >
         <OpeningRevolution data={data.openingByYear} />
       </Section>
@@ -103,27 +104,14 @@ function App() {
           { label: 'Why', text: 'The simulator links opening names to actual piece plans.' },
           { label: 'Explore', text: 'Compare system openings with sharp defensive setups.' },
         ]}
+        discussion={'Stepping through these openings makes the connection between theory and practice visible. System openings like the London develop pieces to predictable squares regardless of Black\'s response, which is why they surged in popularity among online players: they are learnable and engine-friendly. In contrast, sharp defenses like the Sicilian demand memorization of long variations, an area where engine preparation gives an outsized advantage. The simulator shows that "knowing an opening" means knowing a concrete plan, not just a move order.'}
       >
         <OpeningSimulator />
       </Section>
 
       <Section
-        id="material"
-        number="Section 04"
-        title="Material and Sacrifices"
-        description="Average sacrifice rate by era for stronger amateur games."
-        notes={[
-          { label: 'Read', text: 'Each dot is average sacrifices per game.' },
-          { label: 'Why', text: 'AI made non-obvious compensation easier to study.' },
-          { label: 'Explore', text: 'Look for jumps or drops between adjacent eras.' },
-        ]}
-      >
-        <MaterialCurve sacrificeData={data.sacrifice} />
-      </Section>
-
-      <Section
         id="blunders"
-        number="Section 05"
+        number="Section 04"
         title="Did AI Make Us Blunder Less?"
         description="A heatmap of blunders per game by rating and era."
         notes={[
@@ -131,13 +119,14 @@ function App() {
           { label: 'Why', text: 'Post-game AI review should reduce repeated tactical errors.' },
           { label: 'Explore', text: 'Use the side badges for Pre-AI to Modern change.' },
         ]}
+        discussion={"The heatmap shows a clear, consistent decline in blunder rates from the Pre-AI era to the Modern era across every ELO bracket. The improvement is largest in the middle brackets (1400-2200), where players benefit most from post-game engine analysis: they have enough tactical awareness to understand what went wrong, but still make enough errors for the feedback to matter. The 2600+ bracket shows the smallest relative improvement, consistent with the idea that elite players already had strong tactical accuracy before AI tools became widespread. This is the strongest evidence in the project that AI changed how players learn, not just what they learn."}
       >
         <BlunderHeatmap data={data.blunderRate} />
       </Section>
 
       <Section
         id="piece-square"
-        number="Section 06"
+        number="Section 05"
         title="Where Do Pieces Go Now?"
         description="Board heatmaps for where pieces most often land."
         notes={[
@@ -145,13 +134,14 @@ function App() {
           { label: 'Why', text: 'Piece locations reveal strategic habits, not just results.' },
           { label: 'Explore', text: 'Switch pieces and compare center versus flank activity.' },
         ]}
+        discussion={'The piece-square maps reveal that piece placement patterns are remarkably stable across eras. Knights still cluster on c3, f3, c6, and f6; bishops gravitate toward c4, f4, and the fianchetto squares. This makes sense: the geometry of the board and the movement rules of each piece create natural "best squares" that no amount of AI innovation can override. What AI did change is the frequency with which pieces reach their optimal squares: the heatmaps show slightly more concentrated hot spots in later eras, suggesting players became more efficient at reaching good positions, even if the positions themselves did not shift.'}
       >
         <PieceSquareMap data={data.pieceSquares} />
       </Section>
 
       <Section
         id="game-length"
-        number="Section 07"
+        number="Section 06"
         title="Game Length: The Comb Pattern"
         description="Game endings by ply, with time-control spikes highlighted."
         notes={[
@@ -159,47 +149,9 @@ function App() {
           { label: 'Why', text: 'Online time controls shape when games collapse or convert.' },
           { label: 'Explore', text: 'Use the zoom panel around ply 80 and 120.' },
         ]}
+        discussion={"The comb-shaped distribution is driven almost entirely by online time controls. The spike at ply 80 corresponds to 3+0 games ending in time trouble around move 40, and the spike at ply 120 reflects 5+3 and 10+0 games reaching their natural endgame crisis point. This pattern did not shift meaningfully across eras because it is a structural artifact of how Lichess games are played, not a reflection of chess understanding. The overall shape of the distribution (right-skewed with a long tail) remained consistent, reinforcing the conclusion that while AI changed how players think, it did not change the fundamental rhythm of online chess."}
       >
         <GameLength data={data.gameLength} />
-      </Section>
-
-      <Section
-        id="discussion"
-        number="Section 08"
-        title="Discussion"
-        description="The plots point to one main shift: AI changed how players learn, choose openings, and convert games."
-        notes={[
-          { label: 'Openings', text: 'Dominant lines still lead, but the slopes show where players rethink their choices.' },
-          { label: 'Learning', text: 'Blunder declines suggest AI analysis became a daily feedback loop, not just elite prep.' },
-          { label: 'Structure', text: 'Piece maps and game length show that AI also changes style, pace, and setup habits.' },
-        ]}
-      >
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="card-hover border border-border bg-card/45 p-5">
-            <h3 className="text-sm font-semibold text-white mb-2 font-serif">Openings are not just labels</h3>
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-              The simulator and opening plots show that a name like Sicilian or London System hides a concrete plan, not just a move order.
-            </p>
-          </div>
-          <div className="card-hover border border-border bg-card/45 p-5">
-            <h3 className="text-sm font-semibold text-white mb-2 font-serif">AI changes the middle layer first</h3>
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-              The dominant opening may stay dominant, but the smaller lines move fastest once AI ideas spread through the player pool.
-            </p>
-          </div>
-          <div className="card-hover border border-border bg-card/45 p-5">
-            <h3 className="text-sm font-semibold text-white mb-2 font-serif">Learning shows up in blunders</h3>
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-              Lower blunder rates across eras suggest players are reviewing mistakes more effectively, especially with engine help.
-            </p>
-          </div>
-          <div className="card-hover border border-border bg-card/45 p-5">
-            <h3 className="text-sm font-semibold text-white mb-2 font-serif">The game itself keeps its fingerprints</h3>
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-              Piece-square patterns and the comb-shaped game length distribution show that AI shapes style, but not the basic structure of chess.
-            </p>
-          </div>
-        </div>
       </Section>
       </main>
 

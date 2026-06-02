@@ -4,7 +4,6 @@ const sections = [
   { id: 'opening-tree', label: 'Opening Tree' },
   { id: 'opening-revolution', label: 'Opening Revolution' },
   { id: 'opening-simulator', label: 'Simulator' },
-  { id: 'material', label: 'Material' },
   { id: 'blunders', label: 'Blunders' },
   { id: 'piece-square', label: 'Piece Squares' },
   { id: 'game-length', label: 'Game Length' },

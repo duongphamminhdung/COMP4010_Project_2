@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 
-export default function Section({ id, number, title, description, notes = [], children, className = '' }) {
+export default function Section({ id, number, title, description, notes = [], discussion, children, className = '' }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 
@@ -61,6 +61,13 @@ export default function Section({ id, number, title, description, notes = [], ch
       <div className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-8 overflow-x-auto">
         {children}
       </div>
+
+      {discussion && (
+        <div className="mt-6 rounded-lg border p-4 sm:p-5" style={{ background: 'rgba(129,182,76,0.04)', borderColor: 'rgba(129,182,76,0.12)' }}>
+          <h3 className="text-sm font-semibold text-primary mb-2">Discussion</h3>
+          <p className="text-sm text-text-secondary leading-relaxed">{discussion}</p>
+        </div>
+      )}
     </section>
   );
 }
