@@ -65,16 +65,66 @@ def build_tree(df_period, max_ply=10):
     return root
 
 
+def subtree_value(node):
+    """Sum leaf counts of a subtree (for aggregating 'Other')."""
+    if 'children' not in node or not node['children']:
+        return node.get('count', 0)
+    return sum(subtree_value(c) for c in node['children'])
+
+
+def prune_tree(node, depth=0):
+    """Prune tree to keep only top N moves per depth level.
+
+    Depth 0-2: top 5 children (depths 1-3)
+    Depth 3-4: top 3 + aggregate rest into "Other"
+    Depth 5+:  top 2
+    """
+    children = node.get('children', [])
+    if not children:
+        return node
+
+    if depth <= 2:
+        limit, create_other = 5, False
+    elif depth <= 4:
+        limit, create_other = 3, True
+    else:
+        limit, create_other = 2, False
+
+    sorted_children = sorted(children, key=lambda c: c.get('count', 0), reverse=True)
+    kept = [prune_tree(c, depth + 1) for c in sorted_children[:limit]]
+
+    if create_other and len(sorted_children) > limit:
+        excluded = sorted_children[limit:]
+        other_count = sum(subtree_value(c) for c in excluded)
+        if other_count > 0:
+            kept.append({'san': 'Other', 'count': other_count})
+
+    result = {'san': node['san'], 'count': node.get('count', 0)}
+    if kept:
+        result['children'] = kept
+    return result
+
+
 def export_opening_trees(games):
-    print("\n1. Opening tree JSON...")
+    print("\n1. Opening tree JSON (pruned)...")
     for period in PERIOD_ORDER:
         df_p = games[games['period'] == period]
         tree = build_tree(df_p)
+
+        # Count raw nodes before pruning
+        def count_nodes(n):
+            return 1 + sum(count_nodes(c) for c in n.get('children', []))
+        raw_nodes = count_nodes(tree)
+
+        tree = prune_tree(tree)
+        pruned_nodes = count_nodes(tree)
+
         path = os.path.join(DATA_DIR, f'opening_tree_{period}.json')
         with open(path, 'w') as f:
             json.dump(tree, f)
+        size_kb = os.path.getsize(path) / 1024
         n_top = len(tree.get('children', []))
-        print(f"  {period}: {len(df_p):,} games, {n_top} first moves")
+        print(f"  {period}: {len(df_p):,} games, {raw_nodes:,} -> {pruned_nodes:,} nodes ({size_kb:.1f} KB)")
 
 
 def export_blunder_rate(games, blunders):

@@ -7,49 +7,6 @@ import { BOARD_LIGHT, BOARD_DARK } from './ChessBoard';
 // Color palette for root-level move families (ebemunk uses schemeCategory10)
 const ROOT_COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 
-// Sum leaf counts of a subtree (for aggregating "Other")
-function subtreeValue(node) {
-  if (!node.children || !node.children.length) return node.count || 0;
-  return node.children.reduce((sum, c) => sum + subtreeValue(c), 0);
-}
-
-// Prune tree to keep only the top N most popular moves at each depth
-// Depth >= 6: keep top 3 + aggregate rest into "Other"
-function pruneTree(node, depth = 0) {
-  if (!node.children || !node.children.length) return node;
-  const sorted = [...node.children].sort((a, b) => (b.count || 0) - (a.count || 0));
-
-  let limit, createOther;
-  if (depth <= 2) {
-    // Depth 0-2: top 5 children (depths 1-3)
-    limit = 5;
-    createOther = false;
-  } else if (depth <= 4) {
-    // Depth 3-4: top 3 + "Other" (depths 4-5)
-    limit = 3;
-    createOther = true;
-  } else {
-    // Depth 5+: top 2 (depths 6+)
-    limit = 2;
-    createOther = false;
-  }
-
-  const kept = sorted.slice(0, limit).map(c => pruneTree(c, depth + 1));
-
-  if (createOther && sorted.length > limit) {
-    const excluded = sorted.slice(limit);
-    const otherCount = excluded.reduce((sum, c) => sum + subtreeValue(c), 0);
-    if (otherCount > 0) {
-      kept.push({ san: 'Other', count: otherCount });
-    }
-  }
-
-  return {
-    ...node,
-    children: kept,
-  };
-}
-
 // Piece SVGs for the mini board (unicode)
 const PIECE_UNICODE = {
   K: '\u2654', Q: '\u2655', R: '\u2656', B: '\u2657', N: '\u2658', P: '\u2659',
@@ -162,9 +119,7 @@ export default function OpeningTree({ data }) {
   const [hoverInfo, setHoverInfo] = useState(null);
 
   const treeRoot = useMemo(() => {
-    const raw = data[selectedPeriod];
-    if (!raw) return null;
-    return pruneTree(raw);
+    return data[selectedPeriod] || null;
   }, [data, selectedPeriod]);
 
   const totalGames = useMemo(() => {
