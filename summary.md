@@ -121,6 +121,36 @@ Opening colors:  Sicilian #f87171, French #60a5fa, Caro-Kann #fbbf24, QG #34d399
 - `material_by_year_1500.csv` is missing year 2024 for the same reason
 - GitHub Pages deployment sometimes requires `npx gh-pages -d dist --add` if the branch shows "nothing to commit"
 
+## Design Improvements (June 2026)
+
+### Pass 1 (commit 8689204)
+- Replaced blank loading state with animated spinner + text
+- Added IntersectionObserver-based active section indicator in Navbar with animated green underline
+- Added mobile menu smooth transition (max-height animation instead of instant show/hide)
+- Added `btn-press` class (active:scale 0.97) to all buttons across 7 components
+- Added `card-hover` class (translateY -1px + tinted shadow + green border hint) to all cards
+- Added grain/noise overlay via CSS pseudo-element for texture
+- Added section dividers (gradient line with green accent)
+- Added ambient glow between sections (radial gradient pseudo-element)
+- Added proper glass card with inner border highlight + inset shadow for edge refraction
+- Added `tabular-nums` to data values in BlunderHeatmap, PieceSquareMap, OpeningRevolution
+- Added `text-balance` (text-wrap: balance) to headings
+- Fixed OpeningTree D3 labels font from Inter to DM Sans
+- Added skip-to-content link for keyboard users
+- Added og:title, og:description, og:type, twitter:card meta tags
+- Added back-to-top button in Footer
+- Updated discussion cards with `card-hover` and slightly more padding
+
+### Pass 2 (commit 4049375)
+- Added focus-visible ring (2px green outline) on all interactive elements for keyboard accessibility
+- Fixed Hero Math.random() anti-pattern with deterministic seeded pseudo-random positions
+- Increased hero visual depth: stronger radial glow, more visible background pieces, secondary ambient glow
+- Added thin scroll progress bar (2px green, fixed at top)
+- Wrapped main content in `<main>` landmark element
+- Differentiated card treatments: tinted breakpoint cards, green-bordered explanation panel, green-tinted blunder insight box
+- Added named z-index scale in Tailwind config (grain/40, progress/60, nav/50, tooltip/30, overlay/20)
+- Lowered grain overlay z-index from 9999 to 40
+
 ## Deployment
 ```bash
 cd frontend
