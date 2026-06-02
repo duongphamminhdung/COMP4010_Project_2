@@ -95,7 +95,7 @@ export default function EraTimeline() {
             <span className="text-primary text-xs sm:text-sm font-semibold tracking-widest uppercase">
               Historical Frame
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-2 mb-4 leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-2 mb-4 leading-tight text-balance">
               Four eras of human chess under AI
             </h2>
             <p className="text-text-secondary text-base sm:text-lg leading-relaxed max-w-2xl">
@@ -131,7 +131,7 @@ export default function EraTimeline() {
             {ERAS.map((era, index) => (
               <article
                 key={era.id}
-                className={`relative border bg-card/45 transition-all duration-700 ${
+                className={`relative border bg-card/45 card-hover transition-all duration-700 ${
                   visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{

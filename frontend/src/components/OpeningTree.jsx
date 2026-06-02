@@ -306,7 +306,7 @@ export default function OpeningTree({ data }) {
       .attr('pointer-events', 'none')
       .attr('text-anchor', 'middle')
       .attr('font-size', 12)
-      .attr('font-family', 'Inter, sans-serif')
+      .attr('font-family', "'DM Sans', system-ui, sans-serif")
       .attr('fill', 'white')
       .selectAll('text')
       .data(root.descendants().filter(d => d.depth && (d.x1 - d.x0) > 0.1))
@@ -338,7 +338,7 @@ export default function OpeningTree({ data }) {
           <button
             key={p}
             onClick={() => { setSelectedPeriod(p); setHoverInfo(null); }}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`btn-press px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               selectedPeriod === p
                 ? 'bg-primary text-dark'
                 : 'bg-card text-text-secondary hover:bg-border'

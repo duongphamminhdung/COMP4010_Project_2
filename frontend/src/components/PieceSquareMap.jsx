@@ -86,7 +86,7 @@ export default function PieceSquareMap({ data }) {
             type="button"
             onClick={() => setSelectedPiece(p.key)}
             title={p.label}
-            className={`flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl text-2xl sm:text-3xl transition-all ${
+            className={`btn-press flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl text-2xl sm:text-3xl transition-all ${
               selectedPiece === p.key
                 ? 'bg-primary text-dark shadow-lg shadow-primary/30 scale-110'
                 : 'bg-card text-white hover:bg-border hover:scale-105'

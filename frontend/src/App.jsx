@@ -20,10 +20,28 @@ function App() {
     loadAllData().then(setData);
   }, []);
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-dark">
+        <nav className="h-14" />
+        <div className="flex items-center justify-center min-h-[80svh]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-2 border-border" />
+              <div className="absolute inset-0 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            </div>
+            <p className="text-text-muted text-sm font-medium tracking-wide">
+              Loading chess data...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-dark">
+    <div className="min-h-screen bg-dark grain-overlay">
+      <a href="#opening-tree" className="skip-link">Skip to content</a>
       <Navbar />
       <Hero />
       <EraTimeline />
@@ -137,27 +155,27 @@ function App() {
           { label: 'Structure', text: 'Piece maps and game length show that AI also changes style, pace, and setup habits.' },
         ]}
       >
-        <div className="grid md:grid-cols-2 gap-3">
-          <div className="border border-border bg-card/45 p-4">
-            <h3 className="text-sm font-semibold text-white mb-1 font-serif">Openings are not just labels</h3>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="card-hover border border-border bg-card/45 p-5">
+            <h3 className="text-sm font-semibold text-white mb-2 font-serif">Openings are not just labels</h3>
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
               The simulator and opening plots show that a name like Sicilian or London System hides a concrete plan, not just a move order.
             </p>
           </div>
-          <div className="border border-border bg-card/45 p-4">
-            <h3 className="text-sm font-semibold text-white mb-1 font-serif">AI changes the middle layer first</h3>
+          <div className="card-hover border border-border bg-card/45 p-5">
+            <h3 className="text-sm font-semibold text-white mb-2 font-serif">AI changes the middle layer first</h3>
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
               The dominant opening may stay dominant, but the smaller lines move fastest once AI ideas spread through the player pool.
             </p>
           </div>
-          <div className="border border-border bg-card/45 p-4">
-            <h3 className="text-sm font-semibold text-white mb-1 font-serif">Learning shows up in blunders</h3>
+          <div className="card-hover border border-border bg-card/45 p-5">
+            <h3 className="text-sm font-semibold text-white mb-2 font-serif">Learning shows up in blunders</h3>
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
               Lower blunder rates across eras suggest players are reviewing mistakes more effectively, especially with engine help.
             </p>
           </div>
-          <div className="border border-border bg-card/45 p-4">
-            <h3 className="text-sm font-semibold text-white mb-1 font-serif">The game itself keeps its fingerprints</h3>
+          <div className="card-hover border border-border bg-card/45 p-5">
+            <h3 className="text-sm font-semibold text-white mb-2 font-serif">The game itself keeps its fingerprints</h3>
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
               Piece-square patterns and the comb-shaped game length distribution show that AI shapes style, but not the basic structure of chess.
             </p>

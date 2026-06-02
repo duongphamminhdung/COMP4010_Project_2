@@ -46,7 +46,7 @@ export default function Hero() {
           <div className="h-px w-8 sm:w-12 bg-primary" />
         </div>
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-5 sm:mb-6 font-serif">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-5 sm:mb-6 font-serif text-balance">
           The Evolution of{' '}
           <span className="text-primary">Human Chess Thought</span>{' '}
           in the Age of AI
@@ -59,7 +59,7 @@ export default function Hero() {
 
         <a
           href="#opening-tree"
-          className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-dark font-semibold px-6 sm:px-8 py-3 rounded-full transition-all hover:shadow-lg hover:shadow-primary/25"
+          className="btn-press inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-dark font-semibold px-6 sm:px-8 py-3 rounded-full transition-all hover:shadow-lg hover:shadow-primary/30 active:shadow-md active:shadow-primary/20"
         >
           Explore the Data
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

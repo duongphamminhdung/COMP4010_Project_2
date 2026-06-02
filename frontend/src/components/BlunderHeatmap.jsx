@@ -158,10 +158,10 @@ export default function BlunderHeatmap({ data }) {
               const isWorse = change > 0.1;
               const color = isImprove ? IMPROVE : isWorse ? WORSE : NEUTRAL;
               return (
-                <div key={elo} className="rounded-lg px-3 py-2 border border-border"
+                <div key={elo} className="card-hover rounded-lg px-3 py-2 border border-border"
                   style={{ background: 'rgba(49,46,43,0.4)' }}>
                   <div className="text-xs text-text-muted mb-0.5">{elo}</div>
-                  <div className="text-base font-bold" style={{ color }}>
+                  <div className="text-base font-bold tabular-nums" style={{ color }}>
                     {change > 0 ? '+' : ''}{change.toFixed(1)}%
                   </div>
                 </div>
