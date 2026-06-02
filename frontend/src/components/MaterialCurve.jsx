@@ -1,113 +1,110 @@
+import { useMemo } from 'react';
 import {
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  CartesianGrid,
-  BarChart,
-  Bar,
 } from 'recharts';
 
-const PERIOD_COLORS = {
-  'Pre-AI': '#4C8BF5',
-  'Early Post-AI': '#7B61FF',
-  'NNUE Era': '#F5A623',
-  'Modern': '#81B64C',
+const ERA_COLORS = {
+  'Pre-AI': '#60a5fa',
+  'Early Post-AI': '#c084fc',
+  'NNUE Era': '#fbbf24',
+  Modern: '#34d399',
 };
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload) return null;
+const PERIOD_ORDER = ['Pre-AI', 'Early Post-AI', 'NNUE Era', 'Modern'];
+const POSITIVE = '#34d399';
+
+function prepareSacrificeData(sacrificeData) {
+  if (!sacrificeData?.length) return [];
+
+  return PERIOD_ORDER.map((period) => {
+    const row = sacrificeData.find((d) => d.period === period);
+    return {
+      period,
+      avgSacrifices: Number(row?.avgSacrifices) || 0,
+      color: ERA_COLORS[period],
+    };
+  });
+}
+
+const SacrificeTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  const value = payload[0].value;
+
   return (
-    <div className="bg-card border border-border rounded-lg px-4 py-3 shadow-xl">
-      <p className="text-white font-semibold text-sm mb-2">Ply {label}</p>
-      {payload.map((p) => (
-        <p key={p.dataKey} className="text-sm" style={{ color: p.color }}>
-          {p.dataKey}: {p.value}
-        </p>
-      ))}
+    <div
+      className="rounded-lg px-4 py-3 shadow-xl border"
+      style={{ background: 'rgba(49,46,43,0.95)', borderColor: '#3D3B38' }}
+    >
+      <p className="text-white font-semibold text-sm mb-1">{label}</p>
+      <p className="text-sm text-primary">{Number(value).toFixed(2)} sacrifices/game</p>
     </div>
   );
 };
 
-export default function MaterialCurve({ curveData, sacrificeData }) {
-  const periods = ['Pre-AI', 'Early Post-AI', 'NNUE Era', 'Modern'];
+function SacrificeDot({ cx, cy, payload }) {
+  if (cx == null || cy == null) return null;
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={6}
+      fill={payload?.color || POSITIVE}
+      stroke="#1A1A1A"
+      strokeWidth={2}
+    />
+  );
+}
+
+export default function MaterialCurve({ sacrificeData }) {
+  const sacrificeSeries = useMemo(() => prepareSacrificeData(sacrificeData), [sacrificeData]);
+
+  if (!sacrificeSeries.length) return null;
 
   return (
-    <div className="space-y-8">
-      {/* Material decay line chart */}
+    <div>
       <div>
-        <h3 className="text-lg font-semibold text-white mb-2">Material Decay Over Time</h3>
-        <p className="text-sm text-text-muted mb-4">
-          Average total material remaining per side as the game progresses.
-          Modern games retain material slightly longer, suggesting more positional play.
+        <h3 className="text-lg font-semibold text-white mb-2 font-serif">
+          Sacrifice Rate Across Eras
+        </h3>
+        <p className="text-sm text-text-secondary mb-4">
+          Average sacrifices per game for ELO 1500+ players. The connected dots emphasize
+          how sacrificial play changes from one era to the next.
         </p>
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={curveData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#3D3B38" />
-            <XAxis
-              dataKey="ply"
-              tick={{ fill: '#A0A0A0', fontSize: 12 }}
-              axisLine={{ stroke: '#3D3B38' }}
-              label={{ value: 'Ply (half-move)', position: 'insideBottom', offset: -5, fill: '#666' }}
-            />
-            <YAxis
-              tick={{ fill: '#A0A0A0', fontSize: 12 }}
-              axisLine={{ stroke: '#3D3B38' }}
-              domain={[0, 80]}
-              label={{ value: 'Material points', angle: -90, position: 'insideLeft', fill: '#666' }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ paddingTop: 10 }} />
-            {periods.map((p) => (
-              <Line
-                key={p}
-                type="monotone"
-                dataKey={p}
-                stroke={PERIOD_COLORS[p]}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4 }}
+        <div className="w-full min-w-[18rem] h-[280px] sm:h-[320px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={sacrificeSeries} margin={{ top: 10, right: 14, left: 0, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#3D3B38" />
+              <XAxis
+                dataKey="period"
+                tick={{ fill: '#a8aab8', fontSize: 12 }}
+                axisLine={{ stroke: '#3D3B38' }}
+                interval={0}
               />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Sacrifice rate bar chart */}
-      <div>
-        <h3 className="text-lg font-semibold text-white mb-2">Sacrifice Rate by Period</h3>
-        <p className="text-sm text-text-muted mb-4">
-          Average intentional sacrifices per game. AI influence has encouraged more
-          sacrificial play, especially positional sacrifices like exchange sacs.
-        </p>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={sacrificeData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#3D3B38" />
-            <XAxis
-              dataKey="period"
-              tick={{ fill: '#A0A0A0', fontSize: 12 }}
-              axisLine={{ stroke: '#3D3B38' }}
-            />
-            <YAxis
-              tick={{ fill: '#A0A0A0', fontSize: 12 }}
-              axisLine={{ stroke: '#3D3B38' }}
-              domain={[0, 2]}
-            />
-            <Tooltip
-              contentStyle={{ backgroundColor: '#312E2B', border: '1px solid #3D3B38', borderRadius: '8px' }}
-              labelStyle={{ color: '#fff' }}
-            />
-            <Bar
-              dataKey="avgSacrifices"
-              fill="#81B64C"
-              radius={[4, 4, 0, 0]}
-              opacity={0.9}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+              <YAxis
+                tick={{ fill: '#a8aab8', fontSize: 12 }}
+                axisLine={{ stroke: '#3D3B38' }}
+                domain={['dataMin - 0.4', 'dataMax + 0.4']}
+                label={{ value: 'Sacrifices/game', angle: -90, position: 'insideLeft', fill: '#6b6d7b' }}
+              />
+              <Tooltip content={<SacrificeTooltip />} />
+              <Line
+                type="monotone"
+                dataKey="avgSacrifices"
+                stroke={POSITIVE}
+                strokeWidth={3}
+                dot={<SacrificeDot />}
+                activeDot={{ r: 8, stroke: '#1A1A1A', strokeWidth: 2 }}
+                isAnimationActive={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ An interactive data visualization study investigating how AI breakthroughs (Alph
 ## Visualizations
 
 1. **Opening Tree** — Interactive D3 tree showing how opening repertoires shifted post-AI
-2. **First Move Revolution** — e4's declining dominance as d4, c4, and Nf3 gain ground
+2. **Opening Revolution** — How the popularity of named openings (Sicilian, Queen's Pawn, English, etc.) shifted across eras
 3. **Material & Sacrifices** — Material decay curves and rising sacrifice rates across eras
 4. **Blunder Heatmap** — ELO x period heatmap showing AI coaching tools reduced blunders
 5. **Piece-Square Maps** — Chess board heatmaps comparing piece placement pre-AI vs modern

@@ -5,7 +5,7 @@ import {
   PERIOD_ORDER,
 } from './mockData';
 
-const DATA_BASE = '/COMP4010_Project_2/data';
+const DATA_BASE = `${import.meta.env.BASE_URL}data`;
 
 async function fetchCSV(filename) {
   const resp = await fetch(`${DATA_BASE}/${filename}`);
@@ -48,18 +48,18 @@ export async function loadOpeningTreeData() {
 }
 
 // ============================================================
-// 2. First Move by Period
+// 2. Opening Revolution (year-based, ELO 1500+)
 // ============================================================
-export async function loadFirstMoveData() {
+export async function loadOpeningByYearData() {
   try {
-    return await fetchCSV('first_move_by_period.csv');
+    return await fetchCSV('opening_by_year_1500.csv');
   } catch {
     return [];
   }
 }
 
 // ============================================================
-// 3. Material Curve
+// 3. Material Curve (era-based, all ELO)
 // ============================================================
 export async function loadMaterialCurveData() {
   try {
@@ -71,7 +71,7 @@ export async function loadMaterialCurveData() {
 
 export async function loadSacrificeData() {
   try {
-    return await fetchCSV('sacrifice_rate.csv');
+    return await fetchCSV('sacrifice_rate_1500.csv');
   } catch {
     return [];
   }
@@ -111,7 +111,12 @@ export async function loadGameLengthData() {
   try {
     return await fetchCSV('game_length.csv');
   } catch {
-    return [];
+    try {
+      return await fetchCSV('game_length_total.csv');
+    } catch {
+      const { getGameLengthData } = await import('./mockData');
+      return getGameLengthData();
+    }
   }
 }
 
@@ -121,7 +126,7 @@ export async function loadGameLengthData() {
 export async function loadAllData() {
   const [
     openingTree,
-    firstMove,
+    openingByYear,
     materialCurve,
     sacrifice,
     blunderRate,
@@ -129,7 +134,7 @@ export async function loadAllData() {
     gameLength,
   ] = await Promise.all([
     loadOpeningTreeData(),
-    loadFirstMoveData(),
+    loadOpeningByYearData(),
     loadMaterialCurveData(),
     loadSacrificeData(),
     loadBlunderHeatmapData(),
@@ -139,7 +144,7 @@ export async function loadAllData() {
 
   return {
     openingTree,
-    firstMove,
+    openingByYear,
     materialCurve,
     sacrifice,
     blunderRate,

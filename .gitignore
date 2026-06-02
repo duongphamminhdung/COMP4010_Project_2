@@ -20,6 +20,18 @@ frontend/.vite/
 *.pgn
 *.zst
 
+# Aggregated frontend data (gh-pages deploy copies these to data/*.csv on site root)
+!data/blunder_rate.csv
+!data/first_move_by_period.csv
+!data/game_length.csv
+!data/game_length_total.csv
+!data/material_total.csv
+!data/opening_by_period.csv
+!data/opening_by_year_1500.csv
+!data/piece_squares_agg.csv
+!data/sacrifice_rate.csv
+!data/sacrifice_rate_1500.csv
+
 # Environment
 .env
 .env.local

@@ -2,19 +2,51 @@ import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
 import { Chess } from 'chess.js';
 import { PERIOD_ORDER, PERIOD_LABELS } from '../data/mockData';
+import { BOARD_LIGHT, BOARD_DARK } from './ChessBoard';
 
 // Color palette for root-level move families (ebemunk uses schemeCategory10)
 const ROOT_COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 
+// Sum leaf counts of a subtree (for aggregating "Other")
+function subtreeValue(node) {
+  if (!node.children || !node.children.length) return node.count || 0;
+  return node.children.reduce((sum, c) => sum + subtreeValue(c), 0);
+}
+
 // Prune tree to keep only the top N most popular moves at each depth
+// Depth >= 6: keep top 3 + aggregate rest into "Other"
 function pruneTree(node, depth = 0) {
   if (!node.children || !node.children.length) return node;
   const sorted = [...node.children].sort((a, b) => (b.count || 0) - (a.count || 0));
-  const limit = depth === 0 ? 10 : 5;
-  const kept = sorted.slice(0, limit);
+
+  let limit, createOther;
+  if (depth <= 2) {
+    // Depth 0-2: top 5 children (depths 1-3)
+    limit = 5;
+    createOther = false;
+  } else if (depth <= 4) {
+    // Depth 3-4: top 3 + "Other" (depths 4-5)
+    limit = 3;
+    createOther = true;
+  } else {
+    // Depth 5+: top 2 (depths 6+)
+    limit = 2;
+    createOther = false;
+  }
+
+  const kept = sorted.slice(0, limit).map(c => pruneTree(c, depth + 1));
+
+  if (createOther && sorted.length > limit) {
+    const excluded = sorted.slice(limit);
+    const otherCount = excluded.reduce((sum, c) => sum + subtreeValue(c), 0);
+    if (otherCount > 0) {
+      kept.push({ san: 'Other', count: otherCount });
+    }
+  }
+
   return {
     ...node,
-    children: kept.map(c => pruneTree(c, depth + 1)),
+    children: kept,
   };
 }
 
@@ -68,6 +100,7 @@ function movesToFen(moves) {
 
 function getArcFill(d) {
   if (d.depth === 0) return '#2a2a2a';
+  if (d.data.san === 'Other') return '#555';
   // Find the root-level ancestor (depth 1) for the family color
   let rootParent = d;
   while (rootParent.depth > 1) {
@@ -98,7 +131,7 @@ function drawMiniBoard(svgGroup, fen, boardSize) {
         .attr('y', row * sqSize)
         .attr('width', sqSize)
         .attr('height', sqSize)
-        .attr('fill', isLight ? '#f0d9b5' : '#b58863');
+        .attr('fill', isLight ? BOARD_LIGHT : BOARD_DARK);
     }
   }
 
@@ -317,7 +350,7 @@ export default function OpeningTree({ data }) {
       </div>
 
       {/* Sunburst chart container */}
-      <div ref={containerRef} className="flex justify-center relative">
+      <div ref={containerRef} className="opening-tree-chart flex justify-center relative">
         <svg ref={svgRef} />
         {/* Tooltip */}
         <div
@@ -363,16 +396,16 @@ export default function OpeningTree({ data }) {
 
       {/* Inline styles matching ebemunk */}
       <style>{`
-        path {
+        .opening-tree-chart path {
           stroke: white;
           stroke-width: 2;
           stroke-opacity: 0;
           transition: stroke-opacity 0.15s ease;
         }
-        path.highlighted {
+        .opening-tree-chart path.highlighted {
           stroke-opacity: 1;
         }
-        .board {
+        .opening-tree-chart .board {
           pointer-events: none;
         }
       `}</style>
