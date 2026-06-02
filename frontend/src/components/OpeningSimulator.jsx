@@ -245,7 +245,7 @@ export default function OpeningSimulator() {
               key={opening.name}
               type="button"
               onClick={() => setSelectedIndex(index)}
-              className={`text-left border px-3 py-2 min-w-0 transition-all ${
+              className={`btn-press text-left border px-3 py-2 min-w-0 transition-all ${
                 selectedIndex === index
                   ? 'border-primary bg-primary/10'
                   : 'border-border bg-card/50 hover:border-text-muted'
@@ -284,7 +284,7 @@ export default function OpeningSimulator() {
             <button
               type="button"
               onClick={() => setStep(0)}
-              className="px-2 sm:px-3 py-2 text-sm border border-border bg-card text-text-secondary hover:text-white hover:border-text-muted"
+              className="btn-press px-2 sm:px-3 py-2 text-sm border border-border bg-card text-text-secondary hover:text-white hover:border-text-muted"
               title="Reset line"
             >
               |&lt;
@@ -292,7 +292,7 @@ export default function OpeningSimulator() {
             <button
               type="button"
               onClick={() => setStep((current) => Math.max(0, current - 1))}
-              className="px-2 sm:px-3 py-2 text-sm border border-border bg-card text-text-secondary hover:text-white hover:border-text-muted"
+              className="btn-press px-2 sm:px-3 py-2 text-sm border border-border bg-card text-text-secondary hover:text-white hover:border-text-muted"
               title="Previous move"
             >
               &lt;
@@ -300,7 +300,7 @@ export default function OpeningSimulator() {
             <button
               type="button"
               onClick={() => setPlaying((value) => !value)}
-              className="px-2 sm:px-4 py-2 text-sm font-semibold text-dark bg-primary hover:bg-primary-hover"
+              className="btn-press px-2 sm:px-4 py-2 text-sm font-semibold text-dark bg-primary hover:bg-primary-hover"
               title={playing ? 'Pause line' : 'Play line'}
             >
               {playing ? 'Pause' : 'Play'}
@@ -308,7 +308,7 @@ export default function OpeningSimulator() {
             <button
               type="button"
               onClick={() => setStep((current) => Math.min(selected.moves.length, current + 1))}
-              className="px-2 sm:px-3 py-2 text-sm border border-border bg-card text-text-secondary hover:text-white hover:border-text-muted"
+              className="btn-press px-2 sm:px-3 py-2 text-sm border border-border bg-card text-text-secondary hover:text-white hover:border-text-muted"
               title="Next move"
             >
               &gt;
@@ -316,7 +316,7 @@ export default function OpeningSimulator() {
             <button
               type="button"
               onClick={() => setStep(selected.moves.length)}
-              className="px-2 sm:px-3 py-2 text-sm border border-border bg-card text-text-secondary hover:text-white hover:border-text-muted"
+              className="btn-press px-2 sm:px-3 py-2 text-sm border border-border bg-card text-text-secondary hover:text-white hover:border-text-muted"
               title="Finish line"
             >
               &gt;|
@@ -336,7 +336,7 @@ export default function OpeningSimulator() {
                 key={`${move}-${index}`}
                 type="button"
                 onClick={() => setStep(index + 1)}
-                className={`px-2 py-1 text-xs border transition-colors ${
+                className={`btn-press px-2 py-1 text-xs border transition-colors ${
                   index < step
                     ? 'border-primary/50 bg-primary/10 text-white'
                     : 'border-border bg-dark/40 text-text-muted hover:text-white'
