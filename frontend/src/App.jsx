@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Section from './components/Section';
@@ -15,9 +15,20 @@ import { loadAllData } from './data/dataLoader';
 
 function App() {
   const [data, setData] = useState(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     loadAllData().then(setData);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(docHeight > 0 ? scrollTop / docHeight : 0);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   if (!data) {
@@ -42,9 +53,17 @@ function App() {
   return (
     <div className="min-h-screen bg-dark grain-overlay">
       <a href="#opening-tree" className="skip-link">Skip to content</a>
+
+      {/* Scroll progress bar */}
+      <div
+        className="fixed top-0 left-0 right-0 h-[2px] z-[60] bg-primary origin-left"
+        style={{ transform: `scaleX(${scrollProgress})` }}
+      />
+
       <Navbar />
-      <Hero />
-      <EraTimeline />
+      <main>
+        <Hero />
+        <EraTimeline />
 
       <Section
         id="opening-tree"
@@ -182,6 +201,7 @@ function App() {
           </div>
         </div>
       </Section>
+      </main>
 
       <Footer />
     </div>

@@ -108,7 +108,8 @@ export default function EraTimeline() {
             {BREAKPOINTS.map((item) => (
               <div
                 key={item.year}
-                className="border border-border bg-card/40 px-4 py-3"
+                className="card-hover rounded-lg px-4 py-3.5"
+                style={{ background: `${item.color}08`, border: `1px solid ${item.color}20` }}
               >
                 <div className="flex items-baseline gap-3">
                   <span className="text-2xl font-bold tabular-nums" style={{ color: item.color }}>

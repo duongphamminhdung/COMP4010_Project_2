@@ -170,8 +170,8 @@ export default function PieceSquareMap({ data }) {
 
           {/* Column 3: explanation */}
           <div
-            className="w-full lg:flex-1 lg:min-w-[11rem] min-h-0 rounded-lg border border-border p-4 flex flex-col"
-            style={{ background: 'rgba(49,46,43,0.5)' }}
+            className="w-full lg:flex-1 lg:min-w-[11rem] min-h-0 rounded-lg border p-4 flex flex-col"
+            style={{ background: 'rgba(129,182,76,0.03)', borderColor: 'rgba(129,182,76,0.1)' }}
           >
             <h3 className="text-sm font-semibold text-white font-serif mb-2 shrink-0">
               Reading the board
