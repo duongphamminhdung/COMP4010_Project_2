@@ -171,8 +171,8 @@ export default function BlunderHeatmap({ data }) {
         </aside>
       </div>
 
-      <div className="mt-4 rounded-lg border border-border p-3 w-full"
-        style={{ background: 'rgba(49,46,43,0.5)' }}>
+      <div className="mt-4 rounded-lg border p-3 w-full"
+        style={{ background: 'rgba(16,185,129,0.05)', borderColor: 'rgba(16,185,129,0.15)' }}>
         <div className="flex items-center gap-2 mb-1">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: PERIOD_COLORS[2] }} />
           <h3 className="text-sm font-semibold text-white font-serif">NNUE era</h3>
