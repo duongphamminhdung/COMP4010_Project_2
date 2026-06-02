@@ -64,8 +64,8 @@ export default function Section({ id, number, title, description, notes = [], di
 
       {discussion && (
         <div className="mt-6 rounded-lg border p-4 sm:p-5" style={{ background: 'rgba(129,182,76,0.04)', borderColor: 'rgba(129,182,76,0.12)' }}>
-          <h3 className="text-sm font-semibold text-primary mb-2">Discussion</h3>
-          <p className="text-sm text-text-secondary leading-relaxed">{discussion}</p>
+          <h3 className="text-base font-semibold text-primary mb-3">Discussion</h3>
+          <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-3xl">{discussion}</p>
         </div>
       )}
     </section>
