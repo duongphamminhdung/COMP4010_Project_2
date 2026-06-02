@@ -1,11 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AreaChart,
   Area,
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   CartesianGrid,
   ReferenceLine,
@@ -116,6 +115,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function GameLength({ data }) {
+  const [visibleEras, setVisibleEras] = useState(new Set(PERIOD_ORDER));
+
   const { chartData, summaries, multiEra } = useMemo(() => {
     const prepared = prepareGameLengthData(data);
     return {
@@ -125,6 +126,15 @@ export default function GameLength({ data }) {
   }, [data]);
 
   if (!chartData.length) return null;
+
+  function toggleEra(period) {
+    setVisibleEras((prev) => {
+      if (prev.size === 1 && prev.has(period)) return prev;
+      const next = new Set(prev);
+      next.has(period) ? next.delete(period) : next.add(period);
+      return next;
+    });
+  }
 
   return (
     <div>
@@ -139,13 +149,27 @@ export default function GameLength({ data }) {
             const baseMedian = summaries[0]?.medianPly ?? medianPly;
             const deltaMoves = (medianPly - baseMedian) / 2;
             const isBaseline = period === PERIOD_ORDER[0];
+            const active = visibleEras.has(period);
             return (
-              <div
+              <button
                 key={period}
-                className="rounded-lg border border-border bg-card/40 px-3 py-2"
+                type="button"
+                onClick={() => toggleEra(period)}
+                className="rounded-lg border px-3 py-2 text-left transition-all duration-200"
+                style={{
+                  borderColor: active ? PERIOD_COLORS[period] : '#2a3040',
+                  background: active ? `${PERIOD_COLORS[period]}18` : 'rgba(49,46,43,0.25)',
+                  opacity: active ? 1 : 0.45,
+                }}
               >
-                <div className="text-xs font-medium" style={{ color: PERIOD_COLORS[period] }}>
-                  {period}
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="inline-block w-2 h-2 rounded-full shrink-0"
+                    style={{ background: PERIOD_COLORS[period] }}
+                  />
+                  <div className="text-xs font-medium" style={{ color: PERIOD_COLORS[period] }}>
+                    {period}
+                  </div>
                 </div>
                 <div className="mt-1 text-lg font-bold text-white tabular-nums">
                   {(medianPly / 2).toFixed(1)} moves
@@ -158,14 +182,14 @@ export default function GameLength({ data }) {
                       className="text-[11px] font-semibold tabular-nums"
                       style={{ color: deltaMoves <= 0 ? '#4ade80' : '#f87171' }}
                     >
-                      {deltaMoves > 0 ? '+' : ''}{deltaMoves.toFixed(1)} moves vs Pre-AI
+                      {deltaMoves > 0 ? '+' : ''}{deltaMoves.toFixed(1)} vs Pre-AI
                     </span>
                   )}
                 </div>
                 <div className="text-[11px] text-text-muted mt-0.5">
                   {total.toLocaleString()} games
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -204,8 +228,7 @@ export default function GameLength({ data }) {
           />
           {multiEra ? (
             <>
-              <Legend wrapperStyle={{ paddingTop: 10 }} />
-              {PERIOD_ORDER.map((p) => (
+              {PERIOD_ORDER.filter((p) => visibleEras.has(p)).map((p) => (
                 <Area
                   key={p}
                   type="monotone"
