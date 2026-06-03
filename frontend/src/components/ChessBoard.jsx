@@ -6,8 +6,8 @@ const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
 export const BOARD_LIGHT = '#EEEED2';
 export const BOARD_DARK = '#769656';
-const HEAT_LOW = '#bbf7d0';
-const HEAT_HIGH = '#15803d';
+const HEAT_LOW = '#fef08a';
+const HEAT_HIGH = '#f97316';
 
 /** Shared viz height for Section 4 & 5 heatmaps */
 export const HEATMAP_VIZ_HEIGHT = 400;
@@ -106,6 +106,9 @@ export default function ChessBoard({
       const fill = d3.interpolate(HEAT_LOW, HEAT_HIGH)(normalized);
       const opacity = 0.35 + normalized * 0.6;
 
+      const cx = file * sqSize + sqSize / 2;
+      const cy = rank * sqSize + sqSize / 2;
+
       svg.append('rect')
         .attr('x', file * sqSize)
         .attr('y', rank * sqSize)
@@ -114,11 +117,16 @@ export default function ChessBoard({
         .attr('fill', fill)
         .attr('opacity', opacity)
         .attr('class', 'heatmap-cell')
+        .style('cursor', 'pointer')
         .on('mouseenter', function () {
           tooltip
             .style('display', 'block')
-            .html(`<strong>${d.square}</strong><br/>${d.count.toFixed(2)}${valueSuffix}`);
-          d3.select(this).attr('opacity', Math.min(opacity + 0.15, 1));
+            .html(`<strong>${d.square}</strong><br/>${d.count.toFixed(1)}${valueSuffix}`);
+          d3.select(this)
+            .raise()
+            .transition().duration(120).ease(d3.easeCubicOut)
+            .attr('opacity', Math.min(opacity + 0.15, 1))
+            .attr('transform', `translate(${cx},${cy}) scale(1.18) translate(${-cx},${-cy})`);
         })
         .on('mousemove', (event) => {
           const rect = parent.getBoundingClientRect();
@@ -128,7 +136,10 @@ export default function ChessBoard({
         })
         .on('mouseleave', function () {
           tooltip.style('display', 'none');
-          d3.select(this).attr('opacity', opacity);
+          d3.select(this)
+            .transition().duration(150).ease(d3.easeCubicIn)
+            .attr('opacity', opacity)
+            .attr('transform', `translate(${cx},${cy}) scale(1) translate(${-cx},${-cy})`);
         });
     });
 
