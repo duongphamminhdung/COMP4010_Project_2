@@ -11,10 +11,10 @@ import {
 } from 'recharts';
 
 const PERIOD_COLORS = {
-  'Pre-AI': '#4c8bf5',
-  'Early Post-AI': '#a78bfa',
-  'NNUE Era': '#fb923c',
-  'Modern': '#4ade80',
+  'Pre-AI': '#60a5fa',
+  'Early Post-AI': '#c084fc',
+  'NNUE Era': '#fbbf24',
+  'Modern': '#34d399',
 };
 
 const PERIOD_ORDER = ['Pre-AI', 'Early Post-AI', 'NNUE Era', 'Modern'];
@@ -155,9 +155,10 @@ export default function GameLength({ data }) {
                 key={period}
                 type="button"
                 onClick={() => toggleEra(period)}
-                className="rounded-lg border px-3 py-2 text-left transition-all duration-200"
+                className="rounded-lg border border-l-4 px-3 py-2 text-left transition-all duration-200"
                 style={{
                   borderColor: active ? PERIOD_COLORS[period] : '#2a3040',
+                  borderLeftColor: PERIOD_COLORS[period],
                   background: active ? `${PERIOD_COLORS[period]}18` : 'rgba(49,46,43,0.25)',
                   opacity: active ? 1 : 0.45,
                 }}
@@ -195,7 +196,7 @@ export default function GameLength({ data }) {
         </div>
       )}
 
-      <ResponsiveContainer width="100%" height={350}>
+      <ResponsiveContainer width="100%" height={420}>
         <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2a3040" />
           <XAxis

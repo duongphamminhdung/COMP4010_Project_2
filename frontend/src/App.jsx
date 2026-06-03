@@ -138,7 +138,19 @@ function App() {
           { label: 'Why', text: 'Normalization makes eras comparable despite different sample sizes.' },
           { label: 'Explore', text: 'Hover to compare eras and use the median cards as a summary.' },
         ]}
-        discussion={'Games became slightly shorter after the pre-AI era, but the change is modest rather than dramatic. Median length falls from 65 ply (32.5 moves) in Pre-AI games to 62 ply (31 moves) in the NNUE era, then rises slightly to 63 ply in the Modern era. Mean length also declines from 70.7 to 68.7 ply between Pre-AI and Modern. The overlapping curves show that AI did not fundamentally reshape game duration; the result is better interpreted as a small behavioral shift that may also reflect changes in time controls and online playing habits.'}
+        discussion={<>
+          Games became slightly shorter after the{' '}
+          <span style={{ color: '#60a5fa', fontWeight: 700 }}>Pre-AI</span> era, but the change is modest rather than dramatic. Median length falls from{' '}
+          <span style={{ color: '#e2e8f0', fontWeight: 700 }}>65 ply (32.5 moves)</span> in{' '}
+          <span style={{ color: '#60a5fa', fontWeight: 700 }}>Pre-AI</span> games to{' '}
+          <span style={{ color: '#e2e8f0', fontWeight: 700 }}>62 ply (31 moves)</span> in the{' '}
+          <span style={{ color: '#fbbf24', fontWeight: 700 }}>NNUE Era</span>, then rises slightly to{' '}
+          <span style={{ color: '#e2e8f0', fontWeight: 700 }}>63 ply</span> in the{' '}
+          <span style={{ color: '#34d399', fontWeight: 700 }}>Modern</span> era. Mean length also declines from{' '}
+          <span style={{ color: '#e2e8f0', fontWeight: 700 }}>70.7 to 68.7 ply</span> between{' '}
+          <span style={{ color: '#60a5fa', fontWeight: 700 }}>Pre-AI</span> and{' '}
+          <span style={{ color: '#34d399', fontWeight: 700 }}>Modern</span>. The overlapping curves show that AI did not fundamentally reshape game duration; the result is better interpreted as a small behavioral shift that may also reflect changes in time controls and online playing habits.
+        </>}
       >
         <GameLength data={data.gameLength} />
       </Section>
