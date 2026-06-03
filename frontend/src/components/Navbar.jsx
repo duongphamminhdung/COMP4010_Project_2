@@ -6,6 +6,7 @@ const sections = [
   { id: 'opening-simulator', label: 'Simulator' },
   { id: 'blunders', label: 'Blunders' },
   { id: 'piece-square', label: 'Piece Squares' },
+  { id: 'guess-elo', label: 'Guess ELO' },
   { id: 'game-length', label: 'Game Length' },
 ];
 

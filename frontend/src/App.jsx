@@ -10,6 +10,7 @@ import EraTimeline from './components/EraTimeline';
 import BlunderHeatmap from './components/BlunderHeatmap';
 import PieceSquareMap from './components/PieceSquareMap';
 import GameLength from './components/GameLength';
+import GuessELO from './components/GuessELO';
 import { loadAllData } from './data/dataLoader';
 
 function App() {
@@ -140,8 +141,23 @@ function App() {
       </Section>
 
       <Section
-        id="game-length"
+        id="guess-elo"
         number="Section 06"
+        title="Can We Guess Your ELO?"
+        description="Play a game against our bot and let the model predict your rating bracket."
+        notes={[
+          { label: 'Play', text: 'You play White against a ~1300 ELO bot. Click a piece, then click where to move.' },
+          { label: 'Model', text: 'An ACPL regression model predicts your ELO from move quality, calibrated on 200k real games.' },
+          { label: 'Explore', text: 'After 20 moves, hit Predict. If you win, your estimate gets a boost.' },
+        ]}
+        discussion={'The prediction model uses Average Centipawn Loss (ACPL) — the average eval drop per move compared to the best available move. We fitted the regression ELO = a - b × ln(ACPL) on 200,000 Lichess games with known player ratings and Stockfish evaluations. The model demonstrates that playing strength is quantifiable: higher-rated players lose less eval per move on average. Game result against a known-strength bot also factors in: beating the bot sets a floor for your estimate, while losing caps it.'}
+      >
+        <GuessELO modelData={data.eloModel} />
+      </Section>
+
+      <Section
+        id="game-length"
+        number="Section 07"
         title="Game Length: The Comb Pattern"
         description="Game endings by ply, with time-control spikes highlighted."
         notes={[
@@ -149,7 +165,7 @@ function App() {
           { label: 'Why', text: 'Online time controls shape when games collapse or convert.' },
           { label: 'Explore', text: 'Use the zoom panel around ply 80 and 120.' },
         ]}
-        discussion={"The comb-shaped distribution is driven almost entirely by online time controls. The spike at ply 80 corresponds to 3+0 games ending in time trouble around move 40, and the spike at ply 120 reflects 5+3 and 10+0 games reaching their natural endgame crisis point. This pattern did not shift meaningfully across eras because it is a structural artifact of how Lichess games are played, not a reflection of chess understanding. The overall shape of the distribution (right-skewed with a long tail) remained consistent, reinforcing the conclusion that while AI changed how players think, it did not change the fundamental rhythm of online chess."}
+        discussion={"At first glance the histogram looks like a comb distribution, raising doubts about data quality. On closer inspection, peaks are taller on odd plies, meaning Black is more likely to end the game (win, lose, or draw). Stripping away the peaks, the underlying shape is a normal distribution centered around ply 70. This pattern stayed consistent across all eras — it reflects the structural rhythm of online time controls, not a shift in chess understanding."}
       >
         <GameLength data={data.gameLength} />
       </Section>

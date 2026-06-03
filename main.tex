@@ -1,0 +1,344 @@
+\documentclass[a4paper]{article}
+\usepackage[svgnames]{xcolor}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage[top=20mm, left=15mm, right=15mm, bottom=35mm]{geometry}
+\usepackage{enumitem}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{lastpage}
+\usepackage{makecell}
+\usepackage{multicol}
+\usepackage{color,soul}
+\usepackage{longtable,array}
+\usepackage{listings}
+\usepackage{float}
+\usepackage[utf8]{vietnam}
+\usepackage{graphicx}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+    pdfpagemode=FullScreen,
+}
+% Define code listing settings
+\lstdefinestyle{mystyle}{
+    basicstyle=\ttfamily,
+    backgroundcolor=\color{gray!10},
+    frame=lines,
+    breaklines=true,
+    captionpos=b,
+    numbers=left,
+    numberstyle=\tiny,
+    language=Python,
+    showstringspaces=false,
+}
+
+\lstset{style=mystyle}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{deeporange}{rgb}{0.9,0.5,0}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+    language=Python,
+    basicstyle=\ttm,
+    morekeywords={self},              % Add keywords here
+    keywordstyle=\ttb\color{deepblue},
+    emph={MyClass,__init__},          % Custom highlighting
+    emphstyle=\ttb\color{deepred},    % Custom highlighting style
+    stringstyle=\color{deeporange},
+    commentstyle=\color{deepgreen},
+    frame=tb,                         % Any extra options here
+    showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+%%%% Headers %%%%
+\pagestyle{fancy}
+\headheight 57.60004pt
+%\headsep 50pt
+\fancyhead[L]{\includegraphics[height=4.5\baselineskip]{\logo}}
+\fancyhead[R]{\\College of Engineering and Computer Science\\
+Data Visualization
+\\ May, 2026
+}
+
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyfoot[L]{COMP4010 - Spring 2026}
+\fancyfoot[C]{}
+\fancyfoot[R]{\thepage/\pageref{LastPage}}
+
+\newcommand{\coursename}{Artificial Intelligence}
+\newcommand{\logo}{vinuni_logo.png}
+
+\newcommand{\setLabFooter}[1]{%
+  \fancyfoot[C]{Lab #1}
+  \renewcommand{\headrulewidth}{0pt} %remove line
+}
+
+\newcommand{\resetFooter}{%
+  \fancyfoot[C]{}
+  \renewcommand{\headrulewidth}{0.4pt} %add line back
+}
+
+\setlength{\parindent}{0pt}
+\begin{document}
+
+\begin{titlepage}
+
+    % Author
+\begin{minipage}{10cm}
+% \begin{tcolorbox} 
+% [colback = white]
+% {
+
+
+\end{minipage} 
+    % \vspace{1.5cm}
+    \centering
+    \includegraphics[width=0.4\textwidth]{VinUni_logo.png}
+    \vspace{1cm}
+
+    % \vfill
+    {\Large COMP4010 - Data Visualization \par}
+    \vspace{0.5cm}
+
+    % \textbf{Department:}\\
+    \textbf{College of Engineering and Computer Sciences \\ VinUniversity} \par
+    
+    \vspace{1cm}
+    \textbf{Duong Pham Minh Dung - V202401386}
+    
+    \textbf{Chau Hoang Phuc - V202200772}
+    
+    \textbf{Vu Duc Duy - V202200782}
+
+    \textbf{Trinh Tuan Hung - V202401654}
+    
+    \vspace{1cm}
+    \textbf{May, 2026}
+    
+\end{titlepage}
+\newpage
+\section*{1. Introduction}
+
+Chess occupies a unique position in the study of human--AI interaction. It has a clear performance metric (ELO rating), a well-defined state space, and a definitive timeline for AI disruption: AlphaZero's self-taught mastery in December 2017, followed by the Stockfish NNUE architecture in 2020. AlphaZero's unconventional style --- favoring long-term positional advantage over material, re-evaluating centuries of opening theory --- sparked a revolution that rippled through human play at every skill level.
+
+This project investigates whether observing superior AI play actually changed human behavior. Did lower-rated players reduce blunders using post-game engine analysis? Did opening trends shift toward engine-preferred lines? Did players become more willing to sacrifice material after watching engines do so routinely? Can we quantify a player's skill from their move quality alone? To answer these questions, we collected 200,000 games from the Lichess open database and designed seven interactive visualizations, each targeting one facet of the AI--human chess relationship.
+
+
+\section*{2. Dataset and Preprocessing}
+
+\textbf{Source.}
+The Lichess open database (\url{https://database.lichess.org/standard/}) contains billions of standard rated games in PGN format. Each game includes player ELO ratings, time controls, move sequences with engine evaluation scores, opening classifications (ECO codes), and outcomes.
+
+\textbf{Sampling design.}
+We sample approximately 200,000 games across four time periods: pre-AI (2015--2016), early post-AlphaZero (2018--2019), NNUE era (2021--2022), and modern (2024--2025). Within each period, games are evenly distributed across six ELO brackets (0--1000 through 2600+), yielding roughly 8,333 games per cell. Only games with engine evaluation annotations are selected, as these enable quantitative measurement of playing quality.
+
+\textbf{Pipeline.}
+Raw data consists of zstd-compressed PGN files averaging 10--30 GB per month. A two-phase pipeline processes this data:
+\begin{enumerate}[nosep]
+  \item \textbf{Fast scan:} Stream PGN files line-by-line, reject any game whose raw text lacks the substring \texttt{\%eval} (skips 95--98\% of games instantly), bucket candidates by ELO and period, stop when all cells are filled.
+  \item \textbf{Full parse:} Parse only the $\sim$200k collected games with \texttt{python-chess}, extracting move-level features (eval score, material count, piece type, destination square, captures, checks, sacrifices) and game-level metadata (opening name, first 10 moves, game length, castling rights).
+\end{enumerate}
+
+\textbf{Output.}
+The pipeline produces five raw CSVs: game metadata, move-level evaluations, blunders (moves with eval drop $\geq$ 200cp), piece-square frequencies, and material curves. A standalone Python script (\texttt{generate\_frontend\_data.py}) aggregates these into small frontend-ready files (CSVs and JSONs totaling under 3 MB) for the React visualization app.
+
+
+\section*{3. Visualization Design}
+
+Each visualization targets one specific question about how AI changed human chess. We chose chart types based on what the data required rather than defaulting to common templates.
+
+\textbf{Section 1 --- Opening Tree.}
+We built hierarchical trees of move sequences (up to 10 plies deep) for each era. Raw trees contained over 170,000 nodes each, dominated by rare variations. Pruning to the top moves per depth level (top 5 near root, top 3 at mid-depth, top 2 deeper, with excluded moves aggregated into ``Other'') reduced each tree to roughly 16,000 nodes. We chose a D3 sunburst partition chart because it preserves the branching hierarchy while making arc width proportional to move popularity. A mini chessboard in the center updates on hover to show the resulting position after the hovered move sequence.
+
+\textbf{Section 2 --- Opening Revolution.}
+To track named openings over continuous time, we aggregated game counts by year and opening family (ELO 1500+ to filter noise from low-rated games). A shared line chart with reference lines at 2017 (AlphaZero) and 2020 (NNUE) anchors the timeline. This chart type was chosen because line charts are the standard for showing how proportions change over a continuous axis.
+
+\textbf{Section 3 --- Opening Simulator.}
+Line charts show trends but do not convey what an opening looks like on the board. We added an interactive chess board built with \texttt{chess.js} that steps through eight preset openings with play/pause, step forward/back, and a clickable move list. This bridges the gap between abstract opening names and concrete piece plans.
+
+\textbf{Section 4 --- Blunder Heatmap.}
+We defined blunders as moves causing an eval drop of 200+ centipawns and computed average blunders per game for each ELO $\times$ period cell. A heatmap was the natural choice for a two-category comparison (skill level vs.\ time period) because color intensity communicates magnitude more immediately than comparing bar heights across six rows and four columns. Side badges show the pre-AI to modern change for each bracket.
+
+\textbf{Section 5 --- Piece-Square Maps.}
+We aggregated destination-square frequencies for each piece type and period, then overlaid them onto an 8$\times$8 board. Overlaying frequency data onto the actual board geometry preserves spatial meaning that a standard bar chart would lose. A KPI sidebar shows the top square, center-control percentage, active-square count, and a dynamically computed list of the top three most visited squares with their exact percentages.
+
+\textbf{Section 6 --- ELO Prediction.}
+We built an interactive chess game where the user plays White against a minimax bot (depth 3, material + piece-square-table evaluation) rated approximately 1300 ELO. After each user move, the system computes the eval drop relative to the best available move (ACPL --- Average Centipawn Loss). A regression model fitted on the 200k game dataset predicts the user's ELO from ACPL using the formula $\text{ELO} = a - b \cdot \ln(\text{ACPL})$, where $a$ and $b$ are fitted coefficients. Game result against the known-strength bot also factors in: winning sets a floor, losing caps the estimate. The prediction is displayed as a probability distribution over six ELO brackets using a Gaussian kernel.
+
+\textbf{Section 7 --- Game Length.}
+Plotting the ply distribution produced an unexpected comb shape with peaks at odd plies (Black ends more games). A dual-panel line chart shows the full distribution alongside a zoom panel (ply 70--130) where the time-control spikes at ply 80 and 120 are visible. The zoom panel was necessary because the comb pattern is invisible at the scale of the full distribution.
+
+
+\section*{4. Interaction Design}
+
+Interactivity is not decorative --- it is the primary way users explore the high-dimensional data. Each section employs interaction to let users answer their own questions:
+
+\begin{itemize}[nosep]
+  \item \textbf{Period toggle} (Opening Tree): Switching eras redraws the entire sunburst, making structural differences in branching depth and width immediately visible.
+  \item \textbf{Hover path} (Opening Tree): Hovering an arc highlights the ancestor path, shows the move sequence, and updates the center chessboard to the resulting position. This connects abstract arc sizes to concrete board states.
+  \item \textbf{Play controls} (Opening Simulator): Step-by-step, auto-play, and progress-bar scrubbing let users control pacing, which matters because opening theory is sequential --- understanding move 5 requires having seen moves 1--4.
+  \item \textbf{Piece selector} (Piece-Square Maps): Choosing a piece redraws the board heatmap, sidebar KPIs, and explanation text in unison, maintaining context across a three-column layout.
+  \item \textbf{Zoom panel} (Game Length): The secondary chart focuses on the ply range where time-control artifacts appear, saving users from manual horizontal scrolling.
+  \item \textbf{Live game + prediction} (ELO Prediction): Users play a full chess game with piece selection, legal-move highlights, and a bot opponent. Live stats (accuracy, blunder rate, piece development) update after each move. After 20 moves, a Predict button runs the ACPL regression model and shows the ELO bracket distribution. The prediction can be re-run at any point, including after the game ends, and factors in the game result against the known-strength bot.
+\end{itemize}
+
+All interactions use GPU-accelerated CSS transforms (\texttt{transform} and \texttt{opacity}) rather than layout-triggering properties, keeping animations smooth at 60 fps. Scroll-reveal animations (IntersectionObserver) stagger content entry to guide reading order.
+
+
+\section*{5. Methods}
+
+\textbf{Engine evaluations as ground truth.}
+The central analytical method is comparing human moves against Stockfish evaluations embedded in the PGN data. Each move carries an \texttt{\%eval} annotation (position assessment in centipawns), which serves as an objective quality metric. The eval drop between consecutive moves quantifies how bad a mistake was --- we threshold at 200cp to define blunders. This is not traditional machine learning, but the engine evaluations themselves are the output of a deep neural network (NNUE), so the ``predictive analytics'' layer is already embedded in the data: Stockfish predicts the optimal move, and we measure how far humans deviate from that prediction.
+
+\textbf{Aggregation strategies.}
+Raw move-level data is too granular for visualization. We aggregate along two axes:
+\begin{itemize}[nosep]
+  \item \textbf{By period}: Grouping games into four eras around AI milestones (pre-AI, early post-AI, NNUE era, modern) captures before/after effects.
+  \item \textbf{By ELO bracket}: Six skill-level bins isolate whether AI tools helped weaker players disproportionately.
+\end{itemize}
+Year-based aggregations (opening popularity, sacrifice rate by year) provide finer temporal resolution for line charts, filtered to ELO 1500+ to reduce noise.
+
+\textbf{Tree pruning.}
+Opening trees are pruned at build time using a depth-dependent strategy: top 5 children at depths 0--2, top 3 + ``Other'' aggregation at depths 3--4, top 2 at depth 5+. This keeps JSON files under 700 KB each (down from 6--7 MB unpruned) while preserving the structure users care about --- popular lines are intact, rare variations are collapsed.
+
+\textbf{ELO prediction via ACPL regression.}
+The ELO prediction module uses Average Centipawn Loss (ACPL) as its core metric. For each player move, we compute the eval difference between the user's chosen move and the best available move (determined by a depth-0 static evaluation). ACPL is the mean of these losses across all moves played. Using the 200k game dataset, we fitted a nonlinear regression $\text{ELO} = a - b \cdot \ln(\text{ACPL})$ where ACPL is measured in centipawns using the real Stockfish evaluations from the PGN data. The frontend applies this formula with a scaling factor (browser eval units to centipawns) and converts the point estimate into a probability distribution over ELO brackets via a Gaussian kernel. Game result against the known-strength bot provides a prior: winning sets a floor at 1400, losing caps at 1500.
+
+
+\section*{6. Key Findings}
+
+\begin{enumerate}[nosep]
+  \item \textbf{Opening structure is stable; depth changed.} The 1.e4 vs.\ 1.d4 split stayed remarkably constant across all four eras. What changed is tree depth and diversity: post-AI trees are slightly thinner at deeper levels, suggesting players converged onto engine-approved continuations rather than exploring independently.
+
+  \item \textbf{Opening popularity shifted gradually.} The Sicilian Defense maintained its dominance as the most popular response to 1.e4. The Queen's Gambit gained ground steadily, likely because streaming and engine recommendations made it more approachable. The Italian Game saw a modest resurgence post-NNUE, reflecting how engine evaluations rehabilitated classical systems that had fallen out of fashion.
+
+  \item \textbf{Blunders declined across every skill level.} The heatmap shows a clear, consistent decline in blunder rates from pre-AI to modern. The improvement is largest in the 1400--2200 brackets, where players benefit most from post-game engine analysis: they have enough tactical awareness to understand feedback but still make enough errors for it to matter. The 2600+ bracket shows the smallest relative improvement, consistent with elite players already having strong tactical accuracy before AI tools.
+
+  \item \textbf{Piece placement is geometrically determined.} Knights cluster on c3, f3, c6, f6; bishops gravitate toward c4, f4, and fianchetto squares. These patterns are stable across eras because the board geometry and piece movement rules create natural optimal squares that no AI innovation overrides. What AI changed is concentration: hot spots are slightly tighter in later eras, meaning players reach optimal squares more efficiently.
+
+  \item \textbf{Game length is driven by time controls, not eras.} The comb-shaped distribution, with peaks at odd plies (Black ends more games), is a structural artifact of Lichess time controls. It did not shift across eras because it reflects how online chess is played, not how players think.
+
+  \item \textbf{Playing strength is quantifiable from move quality.} The ACPL regression model fitted on the 200k game dataset confirms a strong logarithmic relationship between average centipawn loss and player ELO. Players who consistently choose moves close to the engine's top recommendation (low ACPL) receive high ELO estimates, while frequent blunders (high ACPL) correspond to lower brackets. The interactive ELO prediction section demonstrates this in real time: users can play a game and see how their move quality maps to a rating estimate, making the abstract concept of ``playing strength'' tangible and personal.
+\end{enumerate}
+
+The overarching finding is that AI's impact on human chess is real but nuanced. It changed how players learn (fewer blunders, more efficient piece placement, faster convergence on strong opening lines) without fundamentally altering the geometry or rhythm of the game.
+
+
+\section*{7. Challenges and Limitations}
+
+\textbf{Opening tree size.}
+Raw trees had 160k--178k nodes each, producing JSON files of 6--7 MB. Pruning at build time (rather than in the browser) reduced these to $\sim$600 KB, but the pruning parameters (top 5/3/2) are heuristic --- there is no principled threshold for how many variations to keep.
+
+\textbf{Modern-period sparsity.}
+The modern era (2024--2025) has fewer months of data than other periods, which may underrepresent very recent trends. Opening popularity and blunder rates for this period should be interpreted with this caveat.
+
+\textbf{ELO inflation.}
+Lichess ELO ratings are not directly comparable to FIDE ratings and have experienced inflation over time. A 1500-rated player in 2015 may be weaker than a 1500-rated player in 2024. We mitigate this by using broad brackets rather than treating ELO as a continuous variable, but some within-bracket drift likely exists.
+
+\textbf{Selection bias.}
+Only games with engine evaluation annotations are included. These tend to come from players who request post-game analysis, who may be more engaged with improvement tools than the general population. This could inflate the observed AI-impact effect.
+
+\textbf{No causal claims.}
+This is an observational study. We can identify correlations between AI milestones and changes in human play, but we cannot prove causation. Other factors (pandemic-era chess booms, streaming culture, UI improvements on Lichess) likely contribute to the trends we observe.
+
+
+\section*{8. Future Improvements}
+
+\begin{itemize}[nosep]
+  \item \textbf{Move-level granularity:} The current blunder heatmap aggregates to per-game averages. A move-by-move timeline showing where in the game blunders cluster (opening, middlegame, endgame) would reveal whether AI tools helped players specifically in the phases where engines are most consulted.
+
+  \item \textbf{Time-pressure analysis:} Incorporating clock-time data (available in PGN) would show whether AI-era players manage time differently, particularly in blitz and bullet games.
+
+  \item \textbf{Opening tree search:} Adding a text search to the sunburst chart would let users find specific move sequences rather than relying on visual scanning alone.
+
+  \item \textbf{Per-opening blunder rates:} Combining the opening revolution and blunder datasets could show whether popular openings are also the ones where players blunder less, testing whether engine-approved openings are ``safer'' for humans.
+
+  \item \textbf{Deployment performance:} Lazy-loading the opening tree JSONs (currently loaded eagerly) would improve initial page load, especially on mobile networks.
+\end{itemize}
+
+
+\section*{Screenshots}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic_1.png}
+    \caption{Hero and era timeline}
+    \label{fig:hero}
+\end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic_2.png}
+    \caption{Section 1: Opening Tree (sunburst chart with period toggle)}
+    \label{fig:opening-tree}
+\end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic_3.png}
+    \caption{Section 2: Opening Revolution (line chart with reference lines)}
+    \label{fig:opening-revolution}
+\end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic_4.png}
+    \caption{Section 3: Opening Simulator (interactive chess board)}
+    \label{fig:opening-simulator}
+\end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic_5.png}
+    \caption{Sections 4--5: Blunder Heatmap and Piece-Square Maps}
+    \label{fig:blunder-pieces}
+\end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic_6.png}
+    \caption{Section 6: Game Length Distribution}
+    \label{fig:game-length}
+\end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pic_7.png}
+    \caption{Section 7: ELO Prediction (interactive game with ACPL model)}
+    \label{fig:guess-elo}
+  \end{figure}
+
+\end{document}

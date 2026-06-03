@@ -11,10 +11,10 @@ const PIECE_OPTIONS = [
 ];
 
 const PIECE_INSIGHT = {
-  N: 'Peaks on c3, f3, c6, f6.',
-  B: 'Peaks on c4, f4, and fianchetto squares.',
-  R: 'Peaks on open files and the 7th rank.',
-  Q: 'Peaks on central squares (d4, e5, …).',
+  N: 'Knights gravitate toward central outposts where they control many squares without being easily challenged.',
+  B: 'Bishops thrive on long diagonals and open files, with fianchetto placements being a common modern pattern.',
+  R: 'Rooks dominate open files and the 7th rank, where they cut into the opponent\'s position.',
+  Q: 'The queen\'s mobility lets her influence the entire board, with a preference for central and semi-central squares.',
 };
 
 function countsBySquare(rows) {
@@ -189,6 +189,11 @@ export default function PieceSquareMap({ data }) {
                 <span className="text-white font-medium">{pieceLabel}:</span>{' '}
                 {PIECE_INSIGHT[selectedPiece]}
               </p>
+              {stats?.top3.length > 0 && (
+                <p className="text-text-muted">
+                  Top squares: {stats.top3.map((s) => `${s.square} (${s.count.toFixed(1)}%)`).join(', ')}.
+                </p>
+              )}
             </div>
           </div>
         </div>

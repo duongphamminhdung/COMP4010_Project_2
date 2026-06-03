@@ -121,6 +121,17 @@ export async function loadGameLengthData() {
 }
 
 // ============================================================
+// 7. ELO Prediction Model
+// ============================================================
+export async function loadELOModel() {
+  try {
+    return await fetchJSON('elo_model.json');
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================
 // Load all data
 // ============================================================
 export async function loadAllData() {
@@ -132,6 +143,7 @@ export async function loadAllData() {
     blunderRate,
     pieceSquares,
     gameLength,
+    eloModel,
   ] = await Promise.all([
     loadOpeningTreeData(),
     loadOpeningByYearData(),
@@ -140,6 +152,7 @@ export async function loadAllData() {
     loadBlunderHeatmapData(),
     loadPieceSquareData(),
     loadGameLengthData(),
+    loadELOModel(),
   ]);
 
   return {
@@ -150,5 +163,6 @@ export async function loadAllData() {
     blunderRate,
     pieceSquares,
     gameLength,
+    eloModel,
   };
 }
