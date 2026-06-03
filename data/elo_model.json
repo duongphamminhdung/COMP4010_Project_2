@@ -1,17 +1,52 @@
 {
-  "type": "gaussian_mock",
-  "classes": ["0-1000", "1000-1400", "1400-1800", "1800-2200", "2200-2600", "2600+"],
-  "centers": [500, 1200, 1600, 2000, 2400, 2800],
-  "feature_names": ["accuracy", "blunder_rate", "capture_pct", "check_pct", "piece_diversity", "center_pct", "material_balance"],
-  "feature_weights": {
-    "accuracy": 1500,
-    "blunder_rate": -800,
-    "capture_pct": 200,
-    "check_pct": 100,
-    "piece_diversity": 300,
-    "center_pct": 75,
-    "material_balance": 200
-  },
-  "base_elo": 500,
-  "sigma": 300
+  "type": "acpl_regression",
+  "formula": "ELO = 9636.9 - 1708.0 * ln(ACPL)",
+  "a": 9636.91,
+  "b": 1708.0,
+  "eval_to_cp": 100,
+  "multi_feature_names": [
+    "ln_acpl",
+    "blunder_rate",
+    "capture_pct",
+    "check_pct"
+  ],
+  "multi_scaler_mean": [
+    4.370075924166294,
+    0.1306692563595901,
+    0.23964161050857458,
+    0.06834817388740733
+  ],
+  "multi_scaler_scale": [
+    0.7654957326601274,
+    0.10510561878115593,
+    0.06882521996886075,
+    0.07570254868573442
+  ],
+  "multi_coefs": [
+    -93.19031055198418,
+    -227.45035392868084,
+    -134.66579589833484,
+    -25.792484746711928
+  ],
+  "multi_intercept": 1794.72,
+  "classes": [
+    "0-1000",
+    "1000-1400",
+    "1400-1800",
+    "1800-2200",
+    "2200-2600",
+    "2600+"
+  ],
+  "centers": [
+    500,
+    1200,
+    1600,
+    2000,
+    2400,
+    2800
+  ],
+  "sigma": 300,
+  "n_samples": 295603,
+  "r_squared_simple": -2.911,
+  "r_squared_multi": 0.31
 }
