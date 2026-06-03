@@ -1,5 +1,8 @@
-# Claude
+# Claude context (local AI only)
 CLAUDE.md
+CLAUDE-activeContext.md
+CLAUDE.local.md
+.claude-z/
 
 # Python
 __pycache__/
