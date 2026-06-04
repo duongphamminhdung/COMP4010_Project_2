@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   CartesianGrid,
   Legend,
@@ -108,12 +108,21 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function OpeningRevolution({ data }) {
+  const [selectedOpening, setSelectedOpening] = useState(null);
   const { chartData, series, ranking, baselineYear, latestYear } = useMemo(
     () => prepareLineData(data),
     [data]
   );
 
   if (!chartData.length || !series.length) return null;
+
+  const visibleSeries = selectedOpening
+    ? series.filter((s) => s.opening === selectedOpening)
+    : series;
+
+  const handleCardClick = (opening) => {
+    setSelectedOpening((prev) => (prev === opening ? null : opening));
+  };
 
   return (
     <div>
@@ -165,7 +174,7 @@ export default function OpeningRevolution({ data }) {
               height={52}
               wrapperStyle={{ color: '#a8aab8', fontSize: 12, lineHeight: '18px' }}
             />
-            {series.map(({ opening, dataKey, color }) => (
+            {visibleSeries.map(({ opening, dataKey, color }) => (
               <Line
                 key={dataKey}
                 name={opening}
@@ -190,10 +199,18 @@ export default function OpeningRevolution({ data }) {
           const changeText = item.change == null
             ? 'n/a'
             : `${item.change >= 0 ? '+' : ''}${item.change.toFixed(2)} pts`;
+          const isSelected = selectedOpening === item.opening;
+          const isDimmed = selectedOpening !== null && !isSelected;
           return (
             <div
               key={item.opening}
-              className="card-hover border border-border bg-card/40 px-3 py-2"
+              onClick={() => handleCardClick(item.opening)}
+              className="card-hover border px-3 py-2 cursor-pointer select-none transition-all duration-150"
+              style={{
+                background: isSelected ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
+                borderColor: isSelected ? item.color : 'var(--color-border, #3D3B38)',
+                opacity: isDimmed ? 0.35 : 1,
+              }}
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-2.5 h-2.5 shrink-0" style={{ background: item.color }} />
