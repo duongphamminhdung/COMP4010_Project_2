@@ -38,6 +38,14 @@ export default function PlayerProfilePCA({ data }) {
     };
   }, [normalized]);
 
+  const eraCounts = useMemo(() => {
+    const counts = {};
+    for (const era of PERIOD_LABELS) {
+      counts[era] = normalized.filter((d) => d.period === era).length;
+    }
+    return counts;
+  }, [normalized]);
+
   const toggleEra = (era) => {
     setHiddenEras((prev) => {
       const next = new Set(prev);
@@ -154,7 +162,7 @@ export default function PlayerProfilePCA({ data }) {
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {PERIOD_LABELS.map((era, i) => {
           const active = !hiddenEras.has(era);
-          const count = normalized.filter((d) => d.period === era).length;
+          const count = eraCounts[era] || 0;
           return (
             <button
               key={era}
@@ -230,7 +238,7 @@ export default function PlayerProfilePCA({ data }) {
             >
               <div className="text-[10px] text-text-muted mb-0.5 leading-tight">Points shown</div>
               <div className="text-sm font-bold text-white">
-                {totalCount - normalized.filter((d) => hiddenEras.has(d.period)).length}
+                {totalCount - PERIOD_LABELS.filter((era) => hiddenEras.has(era)).reduce((sum, era) => sum + (eraCounts[era] || 0), 0)}
                 <span className="text-text-muted font-normal">/{totalCount}</span>
               </div>
             </div>

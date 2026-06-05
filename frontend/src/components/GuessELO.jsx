@@ -76,7 +76,7 @@ function getBotMove(chess) {
 
   const scored = moves.map(m => {
     chess.move(m.san);
-    const s = minimax(chess, 5, true, -Infinity, Infinity);
+    const s = minimax(chess, 4, true, -Infinity, Infinity);
     chess.undo();
     return { move: m, score: s };
   });
@@ -346,7 +346,7 @@ export default function GuessELO({ modelData }) {
         <div className="flex flex-col lg:flex-row gap-6 items-start justify-center">
           {/* Board */}
           <div className="relative flex-shrink-0">
-            <svg width={BOARD_PX} height={BOARD_PX} className="rounded overflow-hidden">
+            <svg width={BOARD_PX} height={BOARD_PX} className="rounded overflow-hidden" role="img" aria-label="Chess board - play White against the bot">
               {board.map((row, r) =>
                 row.map((piece, c) => {
                   const sq = String.fromCharCode(97 + c) + (8 - r);

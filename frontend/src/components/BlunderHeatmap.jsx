@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
-import { ELO_BRACKETS } from '../data/mockData';
+import { ELO_BRACKETS } from '../data/constants';
 import { HEATMAP_VIZ_HEIGHT } from './ChessBoard';
 
 const PERIOD_LABELS = ['Pre-AI', 'Early Post-AI', 'NNUE Era', 'Modern'];

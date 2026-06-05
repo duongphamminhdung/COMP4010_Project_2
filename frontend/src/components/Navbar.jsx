@@ -73,7 +73,7 @@ export default function Navbar() {
                 key={s.id}
                 href={`#${s.id}`}
                 onClick={handleNavClick}
-                aria-current={isActive ? 'true' : undefined}
+                aria-current={isActive ? 'step' : undefined}
                 className={`relative px-3 py-1.5 text-xs xl:text-sm transition-all duration-200 whitespace-nowrap ${
                   isActive
                     ? 'text-primary font-semibold'
@@ -121,7 +121,7 @@ export default function Navbar() {
                     : 'text-text-secondary hover:text-primary hover:bg-white/[0.02]'
                 }`}
                 onClick={handleNavClick}
-                aria-current={isActive ? 'true' : undefined}
+                aria-current={isActive ? 'step' : undefined}
               >
                 {isActive && <span className="inline-block w-1 h-1 rounded-full bg-primary mr-2 align-middle" />}
                 {s.label}

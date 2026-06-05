@@ -1,9 +1,8 @@
 // Data loader: fetches aggregated CSV/JSON files from public/data/
-// Falls back to mock data if files are missing
 
 import {
   PERIOD_ORDER,
-} from './mockData';
+} from './constants';
 
 const DATA_BASE = `${import.meta.env.BASE_URL}data`;
 

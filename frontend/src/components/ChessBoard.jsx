@@ -90,13 +90,12 @@ export default function ChessBoard({
     const maxVal = d3.max(visible, (d) => d.count) || 1;
     const parent = svgRef.current.parentElement;
     let tooltip = d3.select(parent).select('.board-tooltip');
-    if (tooltip.empty()) {
-      tooltip = d3.select(parent)
-        .append('div')
-        .attr('class', 'board-tooltip pointer-events-none absolute z-10 hidden rounded px-2 py-1 text-xs text-white shadow-lg')
-        .style('background', 'rgba(49,46,43,0.95)')
-        .style('border', '1px solid #3D3B38');
-    }
+    if (!tooltip.empty()) tooltip.remove();
+    tooltip = d3.select(parent)
+      .append('div')
+      .attr('class', 'board-tooltip pointer-events-none absolute z-10 hidden rounded px-2 py-1 text-xs text-white shadow-lg')
+      .style('background', 'rgba(49,46,43,0.95)')
+      .style('border', '1px solid #3D3B38');
 
     visible.forEach((d) => {
       const coords = parseSquare(d.square);

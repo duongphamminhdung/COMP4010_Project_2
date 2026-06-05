@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
 import { Chess } from 'chess.js';
-import { PERIOD_ORDER, PERIOD_LABELS } from '../data/mockData';
+import { PERIOD_ORDER, PERIOD_LABELS } from '../data/constants';
 import { BOARD_LIGHT, BOARD_DARK } from './ChessBoard';
 
 // Color palette for root-level move families (ebemunk uses schemeCategory10)
@@ -275,7 +275,7 @@ export default function OpeningTree({ data }) {
       .attr('dy', '0.35em')
       .text(d => d.data.san);
 
-  }, [treeRoot, totalGames]);
+  }, [treeRoot]);
 
   useEffect(() => {
     render();

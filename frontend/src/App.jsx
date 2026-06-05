@@ -18,7 +18,10 @@ function App() {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    loadAllData().then(setData);
+    loadAllData().then(setData).catch((err) => {
+      console.error('Failed to load data:', err);
+      setData({});
+    });
   }, []);
 
   useEffect(() => {
