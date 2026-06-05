@@ -65,19 +65,21 @@ export default function ChessBoard({
         if (showLabels) {
           if (row === 7) {
             svg.append('text')
-              .attr('x', (col + 1) * sqSize - 4)
-              .attr('y', (row + 1) * sqSize - 4)
+              .attr('x', (col + 1) * sqSize - 5)
+              .attr('y', (row + 1) * sqSize - 5)
               .attr('text-anchor', 'end')
-              .attr('font-size', '10px')
-              .attr('fill', isLight ? '#737373' : '#d4d4d4')
+              .attr('font-size', '12px')
+              .attr('font-weight', '600')
+              .attr('fill', isLight ? '#4a4a4a' : '#f0f0f0')
               .text(FILES[col]);
           }
           if (col === 0) {
             svg.append('text')
-              .attr('x', 4)
-              .attr('y', row * sqSize + 13)
-              .attr('font-size', '10px')
-              .attr('fill', isLight ? '#737373' : '#d4d4d4')
+              .attr('x', 5)
+              .attr('y', row * sqSize + 14)
+              .attr('font-size', '12px')
+              .attr('font-weight', '600')
+              .attr('fill', isLight ? '#4a4a4a' : '#f0f0f0')
               .text(RANKS[row]);
           }
         }
