@@ -169,17 +169,6 @@ export default function BlunderHeatmap({ data }) {
             })}
           </div>
 
-          <div className="mt-3 rounded-lg border p-3 w-full"
-            style={{ background: 'rgba(16,185,129,0.05)', borderColor: 'rgba(16,185,129,0.15)' }}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: PERIOD_COLORS[2] }} />
-              <h3 className="text-sm font-semibold text-white font-serif">NNUE era</h3>
-            </div>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Teal cells are below-average blunder rates; amber-red cells are above average.
-              Middle ELO brackets show the largest improvement from post-game engine analysis.
-            </p>
-          </div>
         </aside>
       </div>
 
