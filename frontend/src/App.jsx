@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Section from './components/Section';
@@ -13,9 +13,29 @@ import PieceSquareMap from './components/PieceSquareMap';
 import GuessELO from './components/GuessELO';
 import { loadAllData } from './data/dataLoader';
 
+const PIECES = ['♔', '♕', '♖', '♗', '♘', '♙', '♚', '♛', '♜', '♝'];
+
+function buildPiecePositions() {
+  let seed = 42;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+    return (seed >>> 0) / 0xffffffff;
+  };
+  return Array.from({ length: 32 }, (_, i) => ({
+    piece: PIECES[i % PIECES.length],
+    size: 48 + rand() * 100,
+    top: rand() * 100,
+    left: rand() * 100,
+    delay: rand() * 5,
+    duration: 10 + rand() * 8,
+    opacity: 0.018 + rand() * 0.025,
+  }));
+}
+
 function App() {
   const [data, setData] = useState(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const piecePositions = useMemo(() => buildPiecePositions(), []);
 
   useEffect(() => {
     loadAllData().then(setData).catch((err) => {
@@ -57,6 +77,26 @@ function App() {
     <div className="min-h-screen bg-dark grain-overlay">
       <a href="#opening-tree" className="skip-link">Skip to content</a>
 
+      {/* Global chess piece background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {piecePositions.map((p, i) => (
+          <span
+            key={i}
+            className="absolute text-white animate-pulse-slow select-none"
+            style={{
+              fontSize: p.size,
+              top: `${p.top}%`,
+              left: `${p.left}%`,
+              animationDelay: `${p.delay}s`,
+              animationDuration: `${p.duration}s`,
+              opacity: p.opacity,
+            }}
+          >
+            {p.piece}
+          </span>
+        ))}
+      </div>
+
       {/* Scroll progress bar */}
       <div
         className="fixed top-0 left-0 right-0 h-[2px] z-[60] bg-primary origin-left"
@@ -78,7 +118,11 @@ function App() {
           { label: 'Why', text: 'A wider branch means more players chose that line.' },
           { label: 'Explore', text: 'Switch eras and hover to compare repertoire depth.' },
         ]}
-        discussion={'The sunburst reveals that the top-level branching structure (1.e4 vs 1.d4) stayed remarkably stable across all four eras. What changed is the depth and diversity of popular lines: post-AI eras show slightly thinner trees at deeper levels, suggesting players converged more quickly onto engine-approved continuations rather than exploring independently. The "Other" slices also shrink over time, indicating a narrowing of the collective opening repertoire.'}
+        discussion={<>
+          The sunburst reveals that the top-level branching structure (<strong className="text-white">1.e4 vs 1.d4</strong>) stayed remarkably stable across all four eras. What changed is the depth and diversity of popular lines:{' '}
+          <span style={{ color: '#c084fc', fontWeight: 700 }}>post-AI eras</span> show slightly thinner trees at deeper levels, suggesting players converged more quickly onto engine-approved continuations rather than exploring independently. The{' '}
+          <em className="text-white">"Other"</em> slices also shrink over time, indicating a <strong className="text-white">narrowing of the collective opening repertoire</strong>.
+        </>}
       >
         <OpeningTree data={data.openingTree} />
       </Section>
@@ -93,7 +137,11 @@ function App() {
           { label: 'Why', text: 'Slopes show which openings gained or lost share after AI.' },
           { label: 'Explore', text: 'Use the 2017 and 2020 markers as AI reference points.' },
         ]}
-        discussion={"The Sicilian Defense maintained its position as the most popular response to 1.e4 across all eras, but the slopes after 2020 show a subtle flattening. The Queen's Gambit gained ground steadily, likely because streaming and engine recommendations made it more approachable. The Italian Game saw a modest resurgence post-NNUE, reflecting how engine evaluations rehabilitated older, classical systems that had fallen out of fashion. The real story is not that openings changed dramatically, but that the distribution became slightly more even as players broadened their repertoires."}
+        discussion={<>
+          The <strong className="text-white">Sicilian Defense</strong> maintained its position as the most popular response to 1.e4 across all eras, but the slopes after{' '}
+          <span style={{ color: '#fbbf24', fontWeight: 700 }}>2020</span> show a subtle flattening. The <strong className="text-white">Queen's Gambit</strong> gained ground steadily, likely because streaming and engine recommendations made it more approachable. The <strong className="text-white">Italian Game</strong> saw a modest resurgence{' '}
+          <span style={{ color: '#fbbf24', fontWeight: 700 }}>post-NNUE</span>, reflecting how engine evaluations rehabilitated older, classical systems that had fallen out of fashion. The real story is not that openings changed dramatically, but that the distribution became <em className="text-white">slightly more even</em> as players broadened their repertoires.
+        </>}
       >
         <OpeningRevolution data={data.openingByYear} />
       </Section>
@@ -108,7 +156,9 @@ function App() {
           { label: 'Why', text: 'The simulator links opening names to actual piece plans.' },
           { label: 'Explore', text: 'Compare system openings with sharp defensive setups.' },
         ]}
-        discussion={'Stepping through these openings makes the connection between theory and practice visible. System openings like the London develop pieces to predictable squares regardless of Black\'s response, which is why they surged in popularity among online players: they are learnable and engine-friendly. In contrast, sharp defenses like the Sicilian demand memorization of long variations, an area where engine preparation gives an outsized advantage. The simulator shows that "knowing an opening" means knowing a concrete plan, not just a move order.'}
+        discussion={<>
+          Stepping through these openings makes the connection between theory and practice visible. System openings like the <strong className="text-white">London</strong> develop pieces to predictable squares regardless of Black's response, which is why they <span style={{ color: '#34d399', fontWeight: 700 }}>surged in popularity</span> among online players: they are learnable and engine-friendly. In contrast, sharp defenses like the <strong className="text-white">Sicilian</strong> demand memorization of long variations, an area where engine preparation gives an <em className="text-white">outsized advantage</em>. The simulator shows that <em>"knowing an opening"</em> means knowing a concrete plan, not just a move order.
+        </>}
       >
         <OpeningSimulator />
       </Section>
@@ -123,7 +173,11 @@ function App() {
           { label: 'Why', text: 'Post-game AI review should reduce repeated tactical errors.' },
           { label: 'Explore', text: 'Use the side badges for Pre-AI to Modern change.' },
         ]}
-        discussion={"The heatmap shows a clear, consistent decline in blunder rates from the Pre-AI era to the Modern era across every ELO bracket. The improvement is largest in the middle brackets (1400-2200), where players benefit most from post-game engine analysis: they have enough tactical awareness to understand what went wrong, but still make enough errors for the feedback to matter. The 2600+ bracket shows the smallest relative improvement, consistent with the idea that elite players already had strong tactical accuracy before AI tools became widespread. This is the strongest evidence in the project that AI changed how players learn, not just what they learn."}
+        discussion={<>
+          The heatmap shows a clear, consistent decline in blunder rates from the{' '}
+          <span style={{ color: '#60a5fa', fontWeight: 700 }}>Pre-AI</span> era to the{' '}
+          <span style={{ color: '#34d399', fontWeight: 700 }}>Modern</span> era across every ELO bracket. The improvement is largest in the middle brackets (<strong className="text-white">1400–2200</strong>), where players benefit most from post-game engine analysis: they have enough tactical awareness to understand what went wrong, but still make enough errors for the feedback to matter. The <strong className="text-white">2600+</strong> bracket shows the smallest relative improvement, consistent with the idea that elite players already had strong tactical accuracy before AI tools became widespread. This is the <em className="text-white">strongest evidence in the project</em> that AI changed <strong className="text-white">how players learn</strong>, not just what they learn.
+        </>}
       >
         <BlunderHeatmap data={data.blunderRate} />
       </Section>
@@ -179,7 +233,11 @@ function App() {
           { label: 'Model', text: 'An ACPL regression model predicts your ELO from move quality, calibrated on 200k real games.' },
           { label: 'Explore', text: 'After 20 moves, hit Predict. If you win, your estimate gets a boost.' },
         ]}
-        discussion={'The prediction model uses Average Centipawn Loss (ACPL) — the average eval drop per move compared to the best available move. We fitted the regression ELO = a - b × ln(ACPL) on 200,000 Lichess games with known player ratings and Stockfish evaluations. The model demonstrates that playing strength is quantifiable: higher-rated players lose less eval per move on average. Game result against a known-strength bot also factors in: beating the bot sets a floor for your estimate, while losing caps it.'}
+        discussion={<>
+          The prediction model uses <strong className="text-white">Average Centipawn Loss (ACPL)</strong> — the average eval drop per move compared to the best available move. We fitted the regression{' '}
+          <em className="text-white">ELO = a − b × ln(ACPL)</em> on{' '}
+          <strong className="text-white">200,000 Lichess games</strong> with known player ratings and Stockfish evaluations. The model demonstrates that playing strength is quantifiable: <span style={{ color: '#34d399', fontWeight: 700 }}>higher-rated players lose less eval per move</span> on average. Game result against a known-strength bot also factors in: <em className="text-white">beating the bot</em> sets a floor for your estimate, while <em className="text-white">losing</em> caps it.
+        </>}
       >
         <GuessELO modelData={data.eloModel} />
       </Section>

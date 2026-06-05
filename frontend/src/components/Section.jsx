@@ -46,7 +46,7 @@ export default function Section({ id, number, title, description, notes = [], di
           {notes.map((note) => (
             <div
               key={note.label}
-              className="card-hover border border-border bg-card/45 px-3.5 py-3"
+              className="card-hover border border-border bg-card/80 px-3.5 py-3"
             >
               <div className="text-[10px] font-semibold uppercase tracking-wide text-primary mb-1">
                 {note.label}
@@ -63,8 +63,8 @@ export default function Section({ id, number, title, description, notes = [], di
       </div>
 
       {discussion && (
-        <div className="mt-6 rounded-lg border p-4 sm:p-5" style={{ background: 'rgba(129,182,76,0.04)', borderColor: 'rgba(129,182,76,0.12)' }}>
-          <h3 className="text-base font-semibold text-primary mb-3">Discussion</h3>
+        <div className="mt-6 rounded-lg border p-5 sm:p-7" style={{ background: 'rgba(26,26,26,0.82)', borderColor: 'rgba(129,182,76,0.18)' }}>
+          <h3 className="text-xl sm:text-2xl font-bold text-primary mb-4 font-serif">Discussion</h3>
           <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-3xl">{discussion}</p>
         </div>
       )}

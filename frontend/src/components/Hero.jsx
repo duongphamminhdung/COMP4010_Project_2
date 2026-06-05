@@ -1,51 +1,6 @@
-import { useMemo } from 'react';
-
-const PIECES = ['♔', '♕', '♖', '♗', '♘', '♙', '♚', '♛', '♜', '♝'];
-
-function seededPositions() {
-  // Deterministic-ish pseudo-random using a simple LCG for consistent renders
-  let seed = 42;
-  const rand = () => {
-    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
-    return (seed >>> 0) / 0xffffffff;
-  };
-
-  return Array.from({ length: 24 }, (_, i) => ({
-    piece: PIECES[i % PIECES.length],
-    size: 48 + rand() * 100,
-    top: rand() * 100,
-    left: rand() * 100,
-    delay: rand() * 5,
-    duration: 10 + rand() * 8,
-    opacity: 0.02 + rand() * 0.04,
-  }));
-}
-
 export default function Hero() {
-  const positions = useMemo(() => seededPositions(), []);
-
   return (
     <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden py-20">
-      {/* Animated background chess pieces */}
-      <div className="absolute inset-0 overflow-hidden">
-        {positions.map((p, i) => (
-          <span
-            key={i}
-            className="absolute text-white animate-pulse-slow"
-            style={{
-              fontSize: p.size,
-              top: `${p.top}%`,
-              left: `${p.left}%`,
-              animationDelay: `${p.delay}s`,
-              animationDuration: `${p.duration}s`,
-              opacity: p.opacity,
-            }}
-          >
-            {p.piece}
-          </span>
-        ))}
-      </div>
-
       {/* Gradient overlays */}
       <div className="absolute inset-0 bg-gradient-to-b from-dark via-dark/40 to-dark" />
       <div className="absolute inset-0 bg-gradient-to-r from-dark/60 via-transparent to-dark/60" />
