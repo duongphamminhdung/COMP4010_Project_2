@@ -9,7 +9,7 @@ import OpeningSimulator from './components/OpeningSimulator';
 import EraTimeline from './components/EraTimeline';
 import BlunderHeatmap from './components/BlunderHeatmap';
 import PieceSquareMap from './components/PieceSquareMap';
-import GameLength from './components/GameLength';
+import PlayerProfilePCA from './components/PlayerProfilePCA';
 import GuessELO from './components/GuessELO';
 import { loadAllData } from './data/dataLoader';
 
@@ -126,8 +126,23 @@ function App() {
       </Section>
 
       <Section
-        id="piece-square"
+        id="pca-scatter"
         number="Section 05"
+        title="Player Profiles: Did AI Create a New Type of Player?"
+        description="PCA scatter plot of behavioral features, colored by era."
+        notes={[
+          { label: 'Read', text: 'Each dot is one player-game. Clusters show similar playing styles.' },
+          { label: 'Why', text: 'PCA reduces 5 behavioral metrics into 2 dimensions for visual comparison.' },
+          { label: 'Explore', text: 'Toggle eras on/off to see where pre-AI and post-AI players cluster.' },
+        ]}
+        discussion={'LDA (Linear Discriminant Analysis) is a supervised dimensionality reduction technique that finds the directions maximally separating the four eras. Unlike PCA, which ignores class labels, LDA uses era information during training to find the linear combination of five behavioral metrics (ACPL, blunder rate, capture %, check %, moves) that best discriminates between eras. If AI-era players have measurably different behavioral profiles, we expect clear separation along LD1. A Random Forest classifier further identifies which specific behaviors drive the era classification.'}
+      >
+        <PlayerProfilePCA data={data.playerPca} />
+      </Section>
+
+      <Section
+        id="piece-square"
+        number="Section 06"
         title="Where Do Pieces Go Now?"
         description="Board heatmaps for where pieces most often land."
         notes={[
@@ -142,7 +157,7 @@ function App() {
 
       <Section
         id="guess-elo"
-        number="Section 06"
+        number="Section 07"
         title="Can We Guess Your ELO?"
         description="Play a game against our bot and let the model predict your rating bracket."
         notes={[
@@ -153,21 +168,6 @@ function App() {
         discussion={'The prediction model uses Average Centipawn Loss (ACPL) — the average eval drop per move compared to the best available move. We fitted the regression ELO = a - b × ln(ACPL) on 200,000 Lichess games with known player ratings and Stockfish evaluations. The model demonstrates that playing strength is quantifiable: higher-rated players lose less eval per move on average. Game result against a known-strength bot also factors in: beating the bot sets a floor for your estimate, while losing caps it.'}
       >
         <GuessELO modelData={data.eloModel} />
-      </Section>
-
-      <Section
-        id="game-length"
-        number="Section 07"
-        title="Game Length: The Comb Pattern"
-        description="Game endings by ply, with time-control spikes highlighted."
-        notes={[
-          { label: 'Read', text: 'Spikes show many games ending at similar move counts.' },
-          { label: 'Why', text: 'Online time controls shape when games collapse or convert.' },
-          { label: 'Explore', text: 'Use the zoom panel around ply 80 and 120.' },
-        ]}
-        discussion={"At first glance the histogram looks like a comb distribution, raising doubts about data quality. On closer inspection, peaks are taller on odd plies, meaning Black is more likely to end the game (win, lose, or draw). Stripping away the peaks, the underlying shape is a normal distribution centered around ply 70. This pattern stayed consistent across all eras — it reflects the structural rhythm of online time controls, not a shift in chess understanding."}
-      >
-        <GameLength data={data.gameLength} />
       </Section>
       </main>
 

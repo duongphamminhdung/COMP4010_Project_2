@@ -76,7 +76,7 @@ function getBotMove(chess) {
 
   const scored = moves.map(m => {
     chess.move(m.san);
-    const s = minimax(chess, 2, true, -Infinity, Infinity);
+    const s = minimax(chess, 5, true, -Infinity, Infinity);
     chess.undo();
     return { move: m, score: s };
   });

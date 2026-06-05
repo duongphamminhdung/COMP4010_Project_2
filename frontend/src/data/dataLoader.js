@@ -105,18 +105,13 @@ export async function loadPieceSquareData() {
 }
 
 // ============================================================
-// 6. Game Length
+// 6. PCA Scatter Data
 // ============================================================
-export async function loadGameLengthData() {
+export async function loadPCAData() {
   try {
-    return await fetchCSV('game_length.csv');
+    return await fetchCSV('player_pca.csv');
   } catch {
-    try {
-      return await fetchCSV('game_length_total.csv');
-    } catch {
-      const { getGameLengthData } = await import('./mockData');
-      return getGameLengthData();
-    }
+    return [];
   }
 }
 
@@ -141,8 +136,8 @@ export async function loadAllData() {
     materialCurve,
     sacrifice,
     blunderRate,
+    playerPca,
     pieceSquares,
-    gameLength,
     eloModel,
   ] = await Promise.all([
     loadOpeningTreeData(),
@@ -150,8 +145,8 @@ export async function loadAllData() {
     loadMaterialCurveData(),
     loadSacrificeData(),
     loadBlunderHeatmapData(),
+    loadPCAData(),
     loadPieceSquareData(),
-    loadGameLengthData(),
     loadELOModel(),
   ]);
 
@@ -161,8 +156,8 @@ export async function loadAllData() {
     materialCurve,
     sacrifice,
     blunderRate,
+    playerPca,
     pieceSquares,
-    gameLength,
     eloModel,
   };
 }

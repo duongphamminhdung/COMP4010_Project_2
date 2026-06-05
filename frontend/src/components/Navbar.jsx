@@ -5,9 +5,9 @@ const sections = [
   { id: 'opening-revolution', label: 'Opening Revolution' },
   { id: 'opening-simulator', label: 'Simulator' },
   { id: 'blunders', label: 'Blunders' },
+  { id: 'pca-scatter', label: 'Player Profiles' },
   { id: 'piece-square', label: 'Piece Squares' },
   { id: 'guess-elo', label: 'Guess ELO' },
-  { id: 'game-length', label: 'Game Length' },
 ];
 
 export default function Navbar() {

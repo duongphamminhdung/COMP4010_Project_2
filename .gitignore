@@ -32,6 +32,7 @@ frontend/.vite/
 !data/opening_by_period.csv
 !data/opening_by_year_1500.csv
 !data/piece_squares_agg.csv
+!data/player_pca.csv
 !data/sacrifice_rate.csv
 !data/sacrifice_rate_1500.csv
 

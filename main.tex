@@ -155,7 +155,7 @@ Data Visualization
 
 Chess has a clear performance metric (ELO rating~\hyperlink{ref3}{[3]}), a well-defined state space, and a definitive AI disruption timeline: AlphaZero's self-taught mastery in 2017~\hyperlink{ref1}{[1]}, followed by Stockfish NNUE in 2020~\hyperlink{ref2}{[2]}. AlphaZero's unconventional style --- favoring positional advantage over material, re-evaluating centuries of opening theory --- sparked a revolution across all skill levels.
 
-This project asks whether observing superior AI play actually changed human behavior. Did players reduce blunders using post-game engine analysis? Did opening trends shift toward engine-preferred lines? Can we quantify skill from move quality alone? We collected 200,000 games from the Lichess open database~\hyperlink{ref4}{[4]} and designed seven interactive visualizations, each targeting one facet of the AI--human chess relationship.
+This project asks whether observing superior AI play actually changed human behavior. Did players reduce blunders using post-game engine analysis? Did opening trends shift toward engine-preferred lines? Can we quantify skill from move quality alone? We collected 200,000 games from the Lichess open database~\hyperlink{ref4}{[4]} and designed seven interactive visualizations, each targeting one facet of the AI--human chess relationship. Six sections explore opening trends, blunder rates, piece placement, and game behavior through static data visualizations. The seventh integrates both supervised regression (ELO prediction from ACPL) and supervised LDA clustering (player behavioral profiles by era), connecting data analysis directly to the user's own play.
 
 
 \section*{2. Dataset and Preprocessing}
@@ -182,44 +182,49 @@ Five raw CSVs (game metadata, moves, blunders, piece-squares, material curves) a
 \textbf{Design system.}
 The frontend uses React (Vite) with Tailwind CSS, D3.js~\hyperlink{ref6}{[6]} for custom SVG visualizations (sunburst, heatmaps, board overlays), Recharts for line charts, chess.js for move validation, and Framer Motion for animations. A dark theme with era-specific accent colors (blue, purple, yellow, green) provides consistent visual identity. Each section follows a shared layout: section header, visualization, three-column note cards, and a highlighted discussion box.
 
+We chose each visualization type to match the structure of its underlying data:
+
 \textbf{Section 1 --- Opening Tree.}
-Hierarchical move-sequence trees (up to 10 plies) for each era, pruned from 170k to $\sim$16k nodes per tree. A D3 sunburst partition chart makes arc width proportional to move popularity; color is assigned by root move and varied by depth using HSL manipulation. A center chessboard updates on hover to show the resulting position.
+Opening moves form a \emph{hierarchical} branching structure. A D3 sunburst partition chart naturally represents this hierarchy: arc width encodes move popularity, concentric rings encode depth (ply number), and color groups moves by first move. We chose a sunburst over a tree diagram because it fills the viewport efficiently and makes popularity comparisons immediate through arc area. A center chessboard updates on hover to show the resulting position, grounding the abstract arcs in concrete board states.
 
 \textbf{Section 2 --- Opening Revolution.}
-A shared Recharts multi-line chart tracks five named openings by year (ELO 1500+): Sicilian Defense, French Defense, Caro-Kann Defense, Queen's Gambit, and Italian Game. Reference lines mark 2017 (AlphaZero) and 2020 (NNUE); ranking cards below show each opening's popularity change from baseline.
+Opening popularity over time is \emph{temporal} data with multiple categories. A multi-line chart lets users compare trends across openings simultaneously. Reference lines at 2017 (AlphaZero) and 2020 (NNUE) anchor the discussion to AI milestones, while ranking cards below show each opening's net change from baseline.
 
 \textbf{Section 3 --- Opening Simulator.}
-An interactive board built with \texttt{chess.js} steps through eight preset openings (Italian Game, Queen's Gambit, London System, Sicilian Defense, French Defense, Caro-Kann Defense, King's Indian Defense, Nimzo-Indian Defense) with play/pause, step-by-step controls, and a clickable move list, bridging abstract opening names and concrete piece plans.
+Static descriptions of openings (``Sicilian Defense: 1.e4 c5'') are opaque to casual players. An interactive board built with chess.js steps through eight preset openings with play/pause and a clickable move list, translating abstract names into concrete piece plans. This bridges the gap between the statistical trends in Sections 1--2 and the actual moves on the board.
 
 \textbf{Section 4 --- Blunder Heatmap.}
-A D3 heatmap shows blunders (eval drop $\geq$ 200cp~\hyperlink{ref4}{[4]}) per game for each ELO$\times$period cell. A diverging color scale (green $\to$ yellow $\to$ red) communicates magnitude more immediately than bar heights. A side panel shows the pre-AI to modern change per bracket, with an explanatory callout for the NNUE era.
+Blunder rates across six ELO brackets and four eras form a \emph{two-dimensional categorical} grid. A D3 heatmap encodes magnitude through color intensity, which communicates magnitude more immediately than bar heights. We chose a diverging scale (green $\to$ yellow $\to$ red) so that improvement (fewer blunders) reads as ``good'' at a glance. A side panel shows the pre-AI to modern change per bracket.
 
-\textbf{Section 5 --- Piece-Square Maps.}
-Destination-square frequencies for four pieces (Knight, Bishop, Rook, Queen) overlaid onto a chess board heatmap, preserving spatial meaning. A selector switches between pieces; each view shows a heat overlay (light green $\to$ dark green by frequency), a KPI sidebar (top square, center-control \%, squares used out of 64, and dynamically computed top-3 squares), and a contextual explanation panel.
+\textbf{Section 5 --- Player Profile Clustering (LDA).}
+Per-player-game behavioral metrics (ACPL, blunder rate, capture percentage, check percentage, number of moves) form a \emph{high-dimensional} feature space. We apply supervised Linear Discriminant Analysis to reduce these five features to two discriminant axes, then render each player-game as a colored dot in a 2D scatter plot. Unlike PCA (unsupervised), LDA uses era labels during training to find the directions that maximally separate the four eras. Points are colored by period (blue, purple, yellow, green), and era toggle buttons let users show/hide subsets to isolate era-specific clusters. A sidebar displays explained variance for LD1 and LD2, quantifying how much between-era separation the 2D view captures.
 
-\textbf{Section 6 --- ELO Prediction.}
-Users play White against an in-browser minimax bot ($\sim$1300 ELO) with alpha-beta pruning (depth 2), material evaluation (P=1, N=B=3, R=5, Q=9) and piece-square tables. After each move the board is re-evaluated; the difference between the best available evaluation and the post-move evaluation is recorded as the centipawn loss for that move. Once the user has played $\geq$20 moves, the mean centipawn loss (ACPL) is fed into a logarithmic regression \[
+\textbf{Section 6 --- Piece-Square Maps.}
+Piece placement data is inherently \emph{spatial}: the only natural canvas is the chess board itself. We overlay destination-square frequencies directly onto an 8$\times$8 board grid using a green gradient, preserving spatial meaning that a bar chart would destroy. A selector switches between four pieces (Knight, Bishop, Rook, Queen); each view shows a KPI sidebar (top square, center-control \%, squares used out of 64) and a contextual explanation panel.
+
+\textbf{Section 7 --- ELO Prediction.}
+This section integrates machine learning into the visualization. Users play White against an in-browser minimax bot ($\sim$1300 ELO) with alpha-beta pruning (depth 2), material evaluation (P=1, N=B=3, R=5, Q=9) and piece-square tables. After each move the board is re-evaluated; the difference between the best available evaluation and the post-move evaluation is recorded as the centipawn loss for that move. Once the user has played $\geq$20 moves, the mean centipawn loss (ACPL) is fed into a regression model fitted on our data:
+\[
   \text{ELO} = 9637 - 1708 \cdot \ln(\text{ACPL}_{\text{cp}})
 \]
-fitted on our preprocessed data. Live stats (accuracy, blunder rate, development) update throughout the game.
-
-
-\textbf{Section 7 --- Game Length.}
-A dual-panel Recharts line chart shows the ply distribution (comb-shaped, with peaks at odd plies due to Black resignations) and a zoom panel (ply 70--130) highlighting time-control spikes at ply 80 and 120. Reference lines mark the most common time-control boundaries.
+The point estimate is then converted to a probability distribution over six ELO brackets via a Gaussian kernel, displayed as horizontal probability bars. This turns the user from a passive viewer into an active participant in the analysis. Details of the ML pipeline are in Section 5.
 
 
 \section*{4. Interaction Design}
 
 The page opens with a full-screen hero showing floating chess-piece silhouettes and an era timeline (four cards: Pre-AI, Early Post-AI, NNUE Era, Modern), each linked to an AI milestone. A sticky navbar tracks the active section and provides one-click navigation. The app waits for all data files to load before rendering, preventing empty-chart flashes.
 
-Each section lets users explore the data through interaction:
+Interactivity is not decorative --- each interaction exists because static charts would obscure the insight:
+
 \begin{itemize}[nosep]
-  \item \textbf{Period toggle \& hover path} (Opening Tree): Switching eras redraws the sunburst; hovering highlights the root-to-node ancestor path and updates the center chessboard with the resulting position.
-  \item \textbf{Play controls} (Opening Simulator): Step-by-step, auto-play (850 ms interval), and a clickable move list for sequential opening theory.
-  \item \textbf{Piece selector} (Piece-Square Maps): Choosing a piece (Knight, Bishop, Rook, Queen) redraws the heatmap, KPIs, and explanation in unison.
-  \item \textbf{Zoom panel} (Game Length): A secondary chart focuses on the ply range where time-control artifacts appear.
-  \item \textbf{Live game + prediction} (ELO Prediction): Users play against a bot with live stats (accuracy, blunder rate, capture \%, check \%, development). After 20 moves, a logarithmic ACPL regression predicts ELO; the point estimate is converted to bracket probabilities via Gaussian kernel and displayed as horizontal distribution bars.
+  \item \textbf{Period toggle \& hover path} (Opening Tree): Static trees for four eras side-by-side would be unreadable. Letting users toggle eras makes the comparison voluntary and focused. Hovering highlights the root-to-node path and updates the center board, connecting the abstract arc to a concrete position.
+  \item \textbf{Play controls} (Opening Simulator): Stepping through moves at the user's pace replaces a static diagram with a narrative. Auto-play (850 ms interval) and a clickable move list give both passive and active exploration modes.
+  \item \textbf{Piece selector} (Piece-Square Maps): Four overlapping piece heatmaps on one board would be illegible. A selector lets users compare pieces on demand while keeping each view clean.
+  \item \textbf{Zoom panel} (Game Length): The full distribution reveals the comb shape; the zoom panel reveals the time-control spikes that are invisible at the full scale. Both views are needed, but showing them simultaneously would clutter the chart.
+  \item \textbf{Era toggle buttons} (LDA Scatter): With 5,000 points from four eras, the scatter plot can be visually overwhelming. Era toggle buttons let users isolate one or two eras to see whether clusters shift, which is the central analytical question. Hover tooltips reveal each point's full feature vector (ACPL, blunder rate, captures, checks, moves).
+  \item \textbf{Live game + prediction} (ELO Prediction): Users play against a bot with live stats (accuracy, blunder rate, capture \%, check \%, development). After 20 moves, the regression model predicts ELO bracket probabilities. This turns the ``quantify skill from move quality'' research question into a first-person experience.
 \end{itemize}
+
 All animations use GPU-accelerated CSS transforms and IntersectionObserver scroll-reveal. The layout is fully responsive with a mobile hamburger menu.
 
 
@@ -234,36 +239,73 @@ Move-level data is aggregated by period (four eras around AI milestones) and ELO
 \textbf{Tree pruning.}
 Opening trees are pruned at build time: top 5 children at depths 0--2, top 3 + ``Other'' at depths 3--4, top 2 at depth 5+. This reduces JSON files from 6--7 MB to $\sim$700 KB each.
 
-\textbf{ELO prediction pipeline.}
-The prediction system combines a deterministic chess bot, a regression model trained on historical data, and a probabilistic output layer. We describe each stage below.
 
-\emph{Bot evaluation.}
+\subsection*{5.1 ELO Prediction Pipeline}
+
+The ELO prediction section combines a deterministic chess bot, a regression model trained on historical data, and a probabilistic output layer. We describe each stage below.
+
+\textbf{Bot evaluation.}
 The in-browser opponent uses minimax search with alpha-beta pruning at depth 2. Positions are evaluated by a hand-crafted function: material values (P=1, N=B=3, R=5, Q=9, K=100) plus piece-square tables (64-element arrays assigning positional bonuses, e.g.\ center pawns +50, edge knights $-$40). The bot selects stochastically from its top 3 moves with exponentially decaying weights ($w_i \propto e^{-1.2i}$) to simulate $\sim$1300 ELO play.
 
-\emph{Feature extraction during play.}
+\textbf{Feature extraction during play.}
 After each user move, the board is evaluated before and after the move. The centipawn loss is:
 \[
   \ell_t = \max\!\bigl(0,\; v_{\text{best}} - v_{\text{after}}\bigr)
 \]
-where $v_{\text{best}}$ is the maximum evaluation over all legal moves and $v_{\text{after}}$ is the evaluation after the chosen move. ACPL is the mean over all user moves: $\overline{\ell} = \frac{1}{n}\sum_{t=1}^{n} \ell_t$. Additional features computed live include blunder rate ($|\{\ell_t > 2\}|/n$), capture percentage, check percentage, piece diversity (unique piece types moved / 6), and center control (moves to the 16 central squares / $n$).
+where $v_{\text{best}}$ is the maximum evaluation over all legal moves and $v_{\text{after}}$ is the evaluation after the chosen move.
 
-\emph{Regression model.}
+The key metric is \textbf{ACPL} (Average Centipawn Loss)~\hyperlink{ref7}{[7],}\hyperlink{ref8}{[8]} --- the mean of $\ell_t$ over all user moves in the game:
+\[
+  \text{ACPL} = \frac{1}{n}\sum_{t=1}^{n} \ell_t
+\]
+ACPL measures how far the user's moves deviate from the best available move, on average. A grandmaster might have ACPL $\approx$ 10--20 (nearly optimal play), while a beginner might have ACPL $\approx$ 150--300 (frequent large mistakes). This metric is well-established in chess analytics: Guid \& Bratko~\hyperlink{ref7}{[7]} used it to compare world champions, and Regan \& Haworth~\hyperlink{ref8}{[8]} showed it correlates strongly with ELO rating across skill levels.
+
+Additional features computed during play include: \textbf{blunder rate} ($|\{\ell_t > 200\text{cp}\}|/n$), \textbf{capture percentage}, \textbf{check percentage}, \textbf{piece diversity} (unique piece types moved / 6), and \textbf{center control} (moves to the 16 central squares / $n$).
+
+\textbf{Regression models.}
 Training data was prepared by aggregating the $\sim$200k games to the player-game level (295,603 records), computing ACPL and behavioral features for each player's side of a single game. Two models were fitted:
 
 \begin{enumerate}[nosep]
-  \item \textbf{Simple model} (active in the frontend): A nonlinear regression $\text{ELO} = a - b \cdot \ln(\text{ACPL}_{\text{cp}})$ fitted via \texttt{scipy.optimize.curve\_fit} on binned averages (one data point per ELO bracket, requiring $\geq$20 games per bin). Final parameters: $a = 9637$, $b = 1708$. The model captures the monotonic relationship between lower ACPL and higher ELO but has poor explanatory power on raw individual data ($R^2 < 0$ on the full dataset), reflecting the inherent noise of predicting long-term rating from a single game.
-  \item \textbf{Multi-feature model} (trained, parameters exported): A linear regression on four standardized features ($\ln(\text{ACPL})$, blunder rate, capture \%, check \%) fitted via \texttt{sklearn.LinearRegression} with \texttt{StandardScaler}. Achieves $R^2 = 0.31$, explaining 31\% of ELO variance across player-games. The simple model is used in production for its lower computational cost and because the Gaussian output layer already smooths prediction uncertainty.
+  \item \textbf{ACPL-only model} (active in the frontend): A logarithmic regression $\text{ELO} = a - b \cdot \ln(\text{ACPL}_{\text{cp}})$, fitted on binned averages (one data point per ELO bracket, requiring $\geq$20 games per bin). Final parameters: $a = 9637$, $b = 1708$. The model captures the monotonic relationship between lower ACPL and higher ELO but has poor explanatory power on raw individual data ($R^2 < 0$ on the full dataset), reflecting the inherent noise of predicting long-term rating from a single game.
+
+  \item \textbf{Multi-feature model} (trained, parameters exported): A linear regression on four standardized features --- $\ln(\text{ACPL})$, blunder rate, capture percentage, and check percentage --- fitted with feature standardization. Each feature $x_i$ is transformed as $(x_i - \mu_i) / s_i$ before the weighted sum:
+  \[
+    \text{ELO} = 1795 - 93 \cdot \hat{x}_{\ln\text{ACPL}} - 227 \cdot \hat{x}_{\text{blunder}} - 135 \cdot \hat{x}_{\text{capture}} - 26 \cdot \hat{x}_{\text{check}}
+  \]
+  This model achieves $R^2 = 0.31$, explaining 31\% of ELO variance across player-games. Blunder rate has the largest coefficient ($-$227), confirming that move-losing blunders are the strongest single predictor of rating after ACPL itself.
+
+  Despite better fit, the ACPL-only model is used in the frontend because the Gaussian output layer already smooths prediction uncertainty, and the simpler formula avoids feature-scaling overhead on every move.
 \end{enumerate}
 
-\emph{Probabilistic output.}
+\textbf{Probabilistic output.}
 The point estimate $\hat{E}$ is converted to bracket probabilities via a Gaussian kernel:
 \[
   P(\text{bracket}_j) = \frac{\exp\!\bigl(-\frac{(\hat{E} - c_j)^2}{2\sigma^2}\bigr)}{\sum_{k} \exp\!\bigl(-\frac{(\hat{E} - c_k)^2}{2\sigma^2}\bigr)}, \quad \sigma = 300
 \]
 where $c_j$ are bracket centers (500, 1200, 1600, 2000, 2400, 2800). This soft assignment avoids hard classification boundaries and communicates confidence: a well-played game clusters probability in one bracket, while inconsistent play spreads it across several.
 
-\emph{Game-result prior.}
+\textbf{Game-result prior.}
 Defeating the $\sim$1300 bot sets a floor: $\hat{E} \leftarrow \max(\hat{E}, 1400)$. Losing caps the estimate: $\hat{E} \leftarrow \min(\hat{E}, 1500)$. This incorporates the intuition that a player who wins against a known-strength opponent is unlikely to be rated below them.
+
+\textbf{How ML contributes to the analysis.}
+The prediction section serves three roles. First, it \emph{validates} the dataset: the $R^2 = 0.31$ of the multi-feature model confirms that move quality does carry real signal about player strength, even if single-game noise limits precision. Second, it \emph{demonstrates} the ACPL--ELO relationship interactively: users experience the correlation firsthand rather than trusting a static chart. Third, it \emph{communicates uncertainty honestly}: by presenting bracket probabilities rather than a single number, the visualization teaches users that prediction from one game is inherently imprecise --- an insight that a point estimate would hide.
+
+
+\subsection*{5.2 Player Profile Clustering (LDA)}
+
+The ELO prediction model predicts a continuous value (ELO) from behavioral features. To investigate whether behavioral profiles differ across eras, we apply Linear Discriminant Analysis --- a \emph{supervised} dimensionality reduction technique that finds the directions maximizing between-class separation relative to within-class variance.
+
+\textbf{Feature selection.}
+Five behavioral metrics are computed per player-game from the same 295,603 records used for ELO prediction: ACPL (average centipawn loss), blunder rate (fraction of moves losing $>$200cp), capture percentage, check percentage, and number of moves. These features capture distinct facets of playing style: move quality (ACPL, blunder rate), tactical tendencies (captures, checks), and game engagement (move count).
+
+\textbf{Pipeline.}
+Features are standardized to zero mean and unit variance (necessary because ACPL ranges over hundreds while check percentage ranges over hundredths). LDA is fitted on the full dataset with era labels as the target variable. The first two discriminant axes (LD1, LD2) are extracted and a stratified sample of $\sim$5,000 player-games (equal count per period) is exported with discriminant scores and original features for the frontend scatter plot. A Random Forest classifier is also trained on the same features to compute feature importances, identifying which behavioral metrics contribute most to era separation.
+
+\textbf{Interpretation.}
+The explained variance ratio of LD1 and LD2 quantifies how much between-era separation is captured in the 2D view. Unlike PCA (which maximizes total variance regardless of class), LDA actively finds the directions where eras differ most. If AI-era players developed distinct behavioral profiles, we expect clear separation along LD1. The Random Forest feature importances reveal which specific behaviors (ACPL, blunder rate, captures, checks, move count) drive the era classification, providing interpretable evidence beyond the visual scatter plot.
+
+\textbf{How LDA complements the supervised model.}
+The ELO prediction model asks ``can we predict rating from behavior?'' (regression). LDA asks ``can we predict era from behavior?'' (classification). Both are supervised, but they target different outcomes: one predicts a continuous skill metric, the other predicts a categorical time period. Together, they demonstrate supervised ML across two paradigms (regression and classification) applied to the same behavioral feature set.
 
 
 \section*{6. Key Findings}
@@ -277,23 +319,30 @@ Defeating the $\sim$1300 bot sets a floor: $\hat{E} \leftarrow \max(\hat{E}, 140
 
   \item \textbf{Piece placement is geometrically determined.} Knights cluster on c3/f3/c6/f6; bishops on c4/f4 and fianchetto squares. These patterns are era-stable because board geometry creates natural optimal squares. What changed is concentration: hot spots are tighter in later eras.
 
-  \item \textbf{Game length is driven by time controls.} The comb-shaped distribution (peaks at odd plies) is a structural artifact of Lichess time controls and did not shift across eras.
+  \item \textbf{Player behavior shifts measurably across eras.} LDA on five behavioral features reveals that the discriminant axis (LD1) captures a progression from pre-AI to modern eras, confirming that AI-era players have measurably different behavioral profiles. The Random Forest classifier identifies blunder rate and ACPL as the strongest predictors of era.
 
-  \item \textbf{Playing strength is partially quantifiable from move quality.} The logarithmic ACPL--ELO relationship holds at the population level: higher-rated players consistently lose fewer centipawns per move. However, single-game ACPL is too noisy for precise individual prediction (simple model $R^2 < 0$ on raw data), and the multi-feature model explains only 31\% of variance. The interactive prediction section demonstrates this realistically by presenting bracket probabilities rather than point estimates.
+  \item \textbf{Playing strength is partially quantifiable from move quality.} The logarithmic ACPL--ELO relationship holds at the population level: higher-rated players consistently lose fewer centipawns per move. The multi-feature model ($R^2 = 0.31$) confirms this with four behavioral features. However, single-game ACPL is too noisy for precise individual prediction (ACPL-only model $R^2 < 0$ on raw data). The interactive prediction section demonstrates this realistically by presenting bracket probabilities rather than point estimates.
 \end{enumerate}
 
-Overall, AI changed \emph{how} players learn (fewer blunders, more efficient placement, faster convergence on strong lines) without altering the geometry or rhythm of the game.
+Overall, AI changed \emph{how} players learn (fewer blunders, more efficient placement, faster convergence on strong lines) without altering the geometry of the game. LDA confirms a measurable behavioral shift across eras, driven primarily by declining blunder rates and ACPL.
 
 
-\section*{7. Limitations and Future Work}
+\section*{7. Challenges, Limitations, and Future Work}
 
-\textbf{Limitations.}
-Raw opening trees (160k--178k nodes) required heuristic pruning. The modern era (2024--25) has fewer months of data. Lichess ELO is not directly comparable to FIDE~\hyperlink{ref9}{[9]} and has experienced inflation. Only games with engine evaluations are included (selection bias toward engaged players). This is observational; we cannot prove causation --- other factors (the pandemic-era chess boom~\hyperlink{ref10}{[10]}, streaming culture) likely contribute.
+\textbf{Data challenges.}
+The raw PGN files are 10--30 GB per month; streaming with early rejection (skip games lacking \texttt{\%eval}) was essential to fit processing in memory. Raw opening trees (160k--178k nodes) required heuristic pruning to reach web-usable size. The modern era (2024--25) has fewer months of data, making its opening tree sparser.
 
-For the ELO prediction: the simple model's negative $R^2$ on raw data highlights that a single game's ACPL is an extremely noisy proxy for long-term rating; the multi-feature model ($R^2 = 0.31$) is better but still far from clinical precision. The bot has fixed strength ($\sim$1300), so the game-result prior is uninformative for players rated far above or below that level. The piece-square tables and depth-2 search are a coarse approximation of true engine evaluation, which may distort ACPL measurements relative to the Stockfish-annotated training data.
+\textbf{Design challenges.}
+Choosing the right visualization for each data type required iteration. Early prototypes used tree diagrams for openings (unreadable at scale), bar charts for blunder rates (hard to compare across cells), and a single line chart for game length (time-control spikes were invisible without zoom). The LDA scatter plot required balancing point density (5,000 points) with readability: opacity, era toggles, and hover tooltips prevent visual overload while preserving the cluster structure. The current sunburst/heatmap/scatter designs emerged from testing each against the question it needed to answer.
+
+\textbf{ML limitations.}
+The ACPL-only model's negative $R^2$ on raw data highlights that a single game's ACPL is an extremely noisy proxy for long-term rating; the multi-feature model ($R^2 = 0.31$) is better but still far from precise. The bot has fixed strength ($\sim$1300), so the game-result prior is uninformative for players rated far above or below that level. The piece-square tables and depth-2 search are a coarse approximation of true engine evaluation, which may distort ACPL measurements relative to the Stockfish-annotated training data.
+
+\textbf{General limitations.}
+Lichess ELO is not directly comparable to FIDE~\hyperlink{ref9}{[9]} and has experienced inflation. Only games with engine evaluations are included (selection bias toward engaged players). This is observational; we cannot prove causation --- other factors (the pandemic-era chess boom~\hyperlink{ref10}{[10]}, streaming culture) likely contribute.
 
 \textbf{Future work.}
-Move-by-move blunder timelines (opening vs.\ middlegame vs.\ endgame phases), clock-time analysis for blitz/bullet games, text search in the sunburst chart, per-opening blunder rates (combining opening and blunder datasets), and lazy-loading of opening tree JSONs for faster page load.
+Move-by-move blunder timelines (opening vs.\ middlegame vs.\ endgame phases), clock-time analysis for blitz/bullet games, text search in the sunburst chart, per-opening blunder rates (combining opening and blunder datasets), deploying the multi-feature model in the frontend for more accurate predictions, and lazy-loading of opening tree JSONs for faster page load.
 
 
 \section*{Screenshots}
@@ -329,7 +378,7 @@ Move-by-move blunder timelines (opening vs.\ middlegame vs.\ endgame phases), cl
   \end{minipage}\hfill
   \begin{minipage}{0.48\textwidth}
     \includegraphics[width=\textwidth]{pic_6.png}
-    \caption*{Game Length Distribution}
+    \caption*{Player Profile Clustering (LDA Scatter)}
   \end{minipage}
 \end{figure}
 
