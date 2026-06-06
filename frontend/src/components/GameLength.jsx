@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AreaChart,
   Area,
@@ -116,6 +116,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function GameLength({ data }) {
+  const [selectedPeriod, setSelectedPeriod] = useState(null);
   const { chartData, summaries, multiEra } = useMemo(() => {
     const prepared = prepareGameLengthData(data);
     return {
@@ -126,6 +127,12 @@ export default function GameLength({ data }) {
 
   if (!chartData.length) return null;
 
+  const handleCardClick = (period) => {
+    setSelectedPeriod((prev) => (prev === period ? null : period));
+  };
+
+  const visiblePeriods = selectedPeriod ? [selectedPeriod] : PERIOD_ORDER;
+
   return (
     <div>
       <p className="text-sm text-text-secondary mb-4">
@@ -135,22 +142,32 @@ export default function GameLength({ data }) {
 
       {summaries.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
-          {summaries.map(({ period, medianPly, total }) => (
-            <div
-              key={period}
-              className="rounded-lg border border-border bg-card/40 px-3 py-2"
-            >
-              <div className="text-xs font-medium" style={{ color: PERIOD_COLORS[period] }}>
-                {period}
+          {summaries.map(({ period, medianPly, total }) => {
+            const isSelected = selectedPeriod === period;
+            const isDimmed = selectedPeriod !== null && !isSelected;
+            return (
+              <div
+                key={period}
+                onClick={() => handleCardClick(period)}
+                className="rounded-lg border px-3 py-2 cursor-pointer select-none transition-all duration-150"
+                style={{
+                  background: isSelected ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
+                  borderColor: isSelected ? PERIOD_COLORS[period] : 'var(--color-border, #3D3B38)',
+                  opacity: isDimmed ? 0.35 : 1,
+                }}
+              >
+                <div className="text-xs font-medium" style={{ color: PERIOD_COLORS[period] }}>
+                  {period}
+                </div>
+                <div className="mt-1 text-lg font-bold text-white tabular-nums">
+                  {(medianPly / 2).toFixed(1)} moves
+                </div>
+                <div className="text-[11px] text-text-muted">
+                  Median · {total.toLocaleString()} games
+                </div>
               </div>
-              <div className="mt-1 text-lg font-bold text-white tabular-nums">
-                {(medianPly / 2).toFixed(1)} moves
-              </div>
-              <div className="text-[11px] text-text-muted">
-                Median · {total.toLocaleString()} games
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -188,7 +205,7 @@ export default function GameLength({ data }) {
           {multiEra ? (
             <>
               <Legend wrapperStyle={{ paddingTop: 10 }} />
-              {PERIOD_ORDER.map((p) => (
+              {visiblePeriods.map((p) => (
                 <Area
                   key={p}
                   type="monotone"
