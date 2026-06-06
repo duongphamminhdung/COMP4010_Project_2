@@ -4,14 +4,8 @@ import { Chess } from 'chess.js';
 import { PERIOD_ORDER, PERIOD_LABELS } from '../data/constants';
 import { BOARD_LIGHT, BOARD_DARK } from './ChessBoard';
 
-// Color palette for root-level move families
-const ROOT_COLORS = {
-  'e4':   '#a855f7', // purple
-  'd4':   '#22c55e', // green
-  'c4':   '#2dd4bf', // teal/aqua
-  'Nf3':  '#38bdf8', // sky blue
-  'g3':   '#f59e0b', // amber
-};
+// Color palette for root-level move families (ebemunk uses schemeCategory10)
+const ROOT_COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 
 // Piece SVGs for the mini board (unicode)
 const PIECE_UNICODE = {
@@ -69,7 +63,7 @@ function getArcFill(d) {
   while (rootParent.depth > 1) {
     rootParent = rootParent.parent;
   }
-  const base = d3.hsl(ROOT_COLORS[rootParent.data.san] || '#94a3b8');
+  const base = d3.hsl(ROOT_COLORS(rootParent.data.san));
   let color;
   if (d.depth % 2 === 0) {
     color = base.darker(0.5);
@@ -349,7 +343,7 @@ export default function OpeningTree({ data }) {
       <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
         {(treeRoot?.children || []).slice(0, 10).map(child => (
           <div key={child.san} className="flex items-center gap-1.5 text-xs text-text-muted">
-            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: ROOT_COLORS[child.san] || '#94a3b8' }} />
+            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: ROOT_COLORS(child.san) }} />
             <span>1. {child.san}</span>
           </div>
         ))}
