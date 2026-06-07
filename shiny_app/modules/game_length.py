@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 
 import pandas as pd
@@ -16,6 +17,10 @@ def _weighted_median(ply: pd.Series, count: pd.Series) -> float:
     ordered = pd.DataFrame({"ply": ply, "count": count}).sort_values("ply")
     threshold = ordered["count"].sum() / 2
     return float(ordered.loc[ordered["count"].cumsum() >= threshold, "ply"].iloc[0])
+
+
+def _nice_percent_ceiling(value: float) -> float:
+    return max(1.0, math.ceil(value * 4) / 4)
 
 
 @module.ui
@@ -59,23 +64,35 @@ def game_length_server(
     selected_eras: Callable[[], tuple[str, ...]],
 ):
     @reactive.calc
-    def normalized() -> tuple[pd.DataFrame, dict[str, tuple[float, int]]]:
+    def normalized() -> tuple[pd.DataFrame, dict[str, tuple[float, int]], float]:
         rows = data.game_length.copy()
         result = pd.DataFrame({"ply": rows["ply"]})
         summaries: dict[str, tuple[float, int]] = {}
-        for period in selected_eras():
+        max_visible_value = 0.0
+        visible_mask = (rows["ply"] >= 7) & (rows["ply"] <= 178)
+        for period in PERIOD_ORDER:
             label = PERIOD_DISPLAY[period]
             if label not in rows.columns:
                 continue
             counts = pd.to_numeric(rows[label], errors="coerce").fillna(0)
             total = int(counts.sum())
-            result[label] = counts / total * 100 if total else 0
-            summaries[label] = (_weighted_median(rows["ply"], counts), total)
-        return result[(result["ply"] >= 7) & (result["ply"] <= 178)], summaries
+            normalized_counts = counts / total * 100 if total else counts * 0
+            max_visible_value = max(
+                max_visible_value,
+                float(normalized_counts[visible_mask].max()),
+            )
+            if period in selected_eras():
+                result[label] = normalized_counts
+                summaries[label] = (_weighted_median(rows["ply"], counts), total)
+        return (
+            result[visible_mask],
+            summaries,
+            _nice_percent_ceiling(max_visible_value),
+        )
 
     @render.ui
     def medians():
-        _, summaries = normalized()
+        _, summaries, _ = normalized()
         cards = [
             metric_card(
                 label,
@@ -89,7 +106,7 @@ def game_length_server(
 
     @render_plotly
     def distribution():
-        rows, _ = normalized()
+        rows, _, y_max = normalized()
         fig = go.Figure()
         for period in PERIOD_ORDER:
             if period not in selected_eras():
@@ -128,6 +145,7 @@ def game_length_server(
                 "title": "Games ending (%)",
                 "ticksuffix": "%",
                 "gridcolor": "#3d3b38",
+                "range": [0, y_max],
             },
             legend={"orientation": "h", "y": 1.12},
             hovermode="x unified",

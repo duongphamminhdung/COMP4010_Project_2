@@ -11,10 +11,10 @@ from shiny_app.theme import COLORS, apply_plotly_theme
 from shiny_app.ui_helpers import chart_shell, insight_box, metric_card, section_intro
 
 ROOT_COLORS = {
-    "e4":   "#81b64c",
-    "d4":   "#60a5fa",
-    "Nf3":  "#c084fc",
-    "c4":   "#fbbf24",
+    "e4": "#81b64c",
+    "d4": "#60a5fa",
+    "Nf3": "#c084fc",
+    "c4": "#fbbf24",
     "Other": "#64748b",
 }
 INNER_RADIUS = 1.45
@@ -35,8 +35,8 @@ def _branch_color(root_move: str, depth: int) -> str:
     base = ROOT_COLORS.get(root_move, "#9CA3AF")
     if root_move == "Other":
         return _mix_color(base, COLORS["background"], min(0.08 * depth, 0.45))
-    shade = min(0.065 * max(depth - 1, 0), 0.42)
-    return _mix_color(base, COLORS["background"], shade)
+    highlight = min(0.055 * max(depth - 1, 0), 0.30)
+    return _mix_color(base, "#F8FAFC", highlight)
 
 
 def _merge_trees(roots: Iterable[dict]) -> dict:
@@ -66,6 +66,38 @@ def _merge_trees(roots: Iterable[dict]) -> dict:
         float(child.get("count", 0)) for child in merged.get("children", [])
     )
     return merged
+
+
+def _prune_tree(node: dict, depth: int = 0, max_depth: int = 7) -> dict:
+    result = {
+        "san": str(node.get("san", "root")),
+        "count": float(node.get("count", 0)),
+        "children": [],
+    }
+    if depth >= max_depth:
+        return result
+
+    limits = {0: 4, 1: 4, 2: 3, 3: 2, 4: 2, 5: 1, 6: 1}
+    limit = limits.get(depth, 1)
+    children = sorted(
+        node.get("children", []),
+        key=lambda child: float(child.get("count", 0)),
+        reverse=True,
+    )
+    named = [child for child in children if str(child.get("san")) != "Other"]
+    existing_other = [child for child in children if str(child.get("san")) == "Other"]
+    kept = named[:limit]
+    omitted = named[limit:]
+    result["children"] = [_prune_tree(child, depth + 1, max_depth) for child in kept]
+
+    other_count = sum(
+        float(child.get("count", 0)) for child in [*existing_other, *omitted]
+    )
+    if other_count:
+        result["children"].append(
+            {"san": "Other", "count": other_count, "children": []}
+        )
+    return result
 
 
 def _flatten_tree(root: dict, max_depth: int = 7) -> dict[str, list]:
@@ -234,7 +266,7 @@ def opening_tree_ui():
             "01",
             "Opening structure",
             "The Opening Tree",
-            "One collective map of the repertoire across all 200,000 sampled games.",
+            "One collective map of the repertoire across all four study snapshots.",
             [
                 ("Read", "Each ring moves one ply deeper from the starting board."),
                 ("Why", "Arc width shows how much traffic continues through a line."),
@@ -271,7 +303,7 @@ def opening_tree_server(
     session: Session,
     data: AppData,
 ):
-    merged_tree = _merge_trees(data.opening_trees.values())
+    merged_tree = _prune_tree(_merge_trees(data.opening_trees.values()))
     partition = _partition_tree(merged_tree)
     total_games = int(merged_tree["count"])
 
@@ -304,27 +336,55 @@ def opening_tree_server(
 
     @render_plotly
     def tree():
-        fig = go.Figure(
-            go.Barpolar(
-                r=partition["radius"],
-                base=partition["base"],
-                theta=partition["theta"],
-                width=partition["width"],
-                marker={
-                    "color": partition["colors"],
-                    "line": {"color": COLORS["background"], "width": 1.2},
+        grouped: dict[str, dict[str, list]] = {}
+        for radius, base, theta, width, color, customdata in zip(
+            partition["radius"],
+            partition["base"],
+            partition["theta"],
+            partition["width"],
+            partition["colors"],
+            partition["customdata"],
+            strict=True,
+        ):
+            group = grouped.setdefault(
+                color,
+                {
+                    "radius": [],
+                    "base": [],
+                    "theta": [],
+                    "width": [],
+                    "customdata": [],
                 },
-                customdata=partition["customdata"],
-                hovertemplate=(
-                    "<b>%{customdata[0]}</b><br>"
-                    "Games through this move: %{customdata[1]:,.0f}<br>"
-                    "Share of parent: %{customdata[2]:.1f}%<br>"
-                    "Share of all games: %{customdata[3]:.1f}%<extra></extra>"
-                ),
-                opacity=0.98,
-                showlegend=False,
             )
-        )
+            group["radius"].append(radius)
+            group["base"].append(base)
+            group["theta"].append(theta)
+            group["width"].append(width)
+            group["customdata"].append(customdata)
+
+        fig = go.Figure()
+        for color, group in grouped.items():
+            fig.add_trace(
+                go.Barpolar(
+                    r=group["radius"],
+                    base=group["base"],
+                    theta=group["theta"],
+                    width=group["width"],
+                    marker={
+                        "color": color,
+                        "line": {"color": COLORS["background"], "width": 1.2},
+                    },
+                    customdata=group["customdata"],
+                    hovertemplate=(
+                        "<b>%{customdata[0]}</b><br>"
+                        "Games through this move: %{customdata[1]:,.0f}<br>"
+                        "Share of parent: %{customdata[2]:.1f}%<br>"
+                        "Share of all games: %{customdata[3]:.1f}%<extra></extra>"
+                    ),
+                    opacity=0.98,
+                    showlegend=False,
+                )
+            )
         fig.add_trace(
             go.Scatterpolar(
                 r=partition["label_radius"],
@@ -342,6 +402,7 @@ def opening_tree_server(
         )
         apply_plotly_theme(fig, margin={"l": 12, "r": 12, "t": 12, "b": 12})
         fig.update_layout(
+            height=720,
             polar={
                 "bgcolor": "rgba(0,0,0,0)",
                 "radialaxis": {

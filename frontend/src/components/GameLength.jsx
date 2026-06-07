@@ -17,6 +17,10 @@ const PERIOD_ORDER = ['Pre-AI', 'Early Post-AI', 'NNUE Era', 'Modern'];
 const PLY_MIN = 7;
 const PLY_MAX = 178;
 
+function nicePercentCeiling(value) {
+  return Math.max(1, Math.ceil(value * 4) / 4);
+}
+
 function isWideFormat(rows) {
   return rows?.length > 0 && PERIOD_ORDER.some((p) => p in rows[0]);
 }
@@ -46,14 +50,17 @@ function prepareGameLengthData(rows) {
       .sort((a, b) => a.ply - b.ply);
     const total = prepared.reduce((sum, row) => sum + row.count, 0);
 
+    const chartData = prepared
+      .filter((row) => row.ply >= PLY_MIN && row.ply <= PLY_MAX)
+      .map((row) => ({
+        ...row,
+        count: total > 0 ? (row.count / total) * 100 : 0,
+      }));
+
     return {
-      chartData: prepared
-        .filter((row) => row.ply >= PLY_MIN && row.ply <= PLY_MAX)
-        .map((row) => ({
-          ...row,
-          count: total > 0 ? (row.count / total) * 100 : 0,
-        })),
+      chartData,
       summaries: [],
+      yMax: nicePercentCeiling(Math.max(...chartData.map((row) => row.count), 0)),
     };
   }
 
@@ -75,23 +82,32 @@ function prepareGameLengthData(rows) {
     ])
   );
 
+  const chartData = prepared
+    .filter((row) => row.ply >= PLY_MIN && row.ply <= PLY_MAX)
+    .map((row) => {
+      const normalized = { ply: row.ply };
+      for (const period of PERIOD_ORDER) {
+        normalized[period] = totals[period] > 0
+          ? (row[period] / totals[period]) * 100
+          : 0;
+      }
+      return normalized;
+    });
+  const yMax = nicePercentCeiling(
+    Math.max(
+      ...chartData.flatMap((row) => PERIOD_ORDER.map((period) => row[period] ?? 0)),
+      0
+    )
+  );
+
   return {
-    chartData: prepared
-      .filter((row) => row.ply >= PLY_MIN && row.ply <= PLY_MAX)
-      .map((row) => {
-        const normalized = { ply: row.ply };
-        for (const period of PERIOD_ORDER) {
-          normalized[period] = totals[period] > 0
-            ? (row[period] / totals[period]) * 100
-            : 0;
-        }
-        return normalized;
-      }),
+    chartData,
     summaries: PERIOD_ORDER.map((period) => ({
       period,
       medianPly: weightedMedian(prepared, period),
       total: totals[period],
     })),
+    yMax,
   };
 }
 
@@ -112,7 +128,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function GameLength({ data }) {
   const [selectedPeriod, setSelectedPeriod] = useState(null);
-  const { chartData, summaries, multiEra } = useMemo(() => {
+  const { chartData, summaries, multiEra, yMax } = useMemo(() => {
     const prepared = prepareGameLengthData(data);
     return {
       ...prepared,
@@ -205,6 +221,7 @@ export default function GameLength({ data }) {
             label={{ value: 'Ply (half-move)', position: 'insideBottom', offset: -5, fill: '#6b6d7b' }}
           />
           <YAxis
+            domain={[0, yMax]}
             tick={{ fill: '#a8aab8', fontSize: 12 }}
             axisLine={{ stroke: '#2a3040' }}
             tickFormatter={(v) => `${v}%`}

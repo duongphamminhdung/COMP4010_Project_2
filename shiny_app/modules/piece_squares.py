@@ -37,7 +37,7 @@ def piece_squares_ui():
             "06",
             "Spatial strategy",
             "Where Do Pieces Go Now?",
-            "Destination-square bubbles place strategic habits directly on a chess board.",
+            "An orange destination-square heatmap places strategic habits directly on a chess board.",
             [
                 (
                     "Read",

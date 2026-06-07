@@ -14,7 +14,12 @@ from shiny_app.data import PERIOD_ORDER, load_app_data
 from shiny_app.modules.elo_predictor import feature_summary, initial_state
 from shiny_app.modules.game_length import _weighted_median
 from shiny_app.modules.opening_simulator import OPENINGS
-from shiny_app.modules.opening_tree import _flatten_tree, _merge_trees, _partition_tree
+from shiny_app.modules.opening_tree import (
+    _flatten_tree,
+    _merge_trees,
+    _partition_tree,
+    _prune_tree,
+)
 from shiny_app.theme import OPENING_COLORS, opening_color
 
 
@@ -54,7 +59,7 @@ def test_opening_tree_flattening_creates_unique_paths() -> None:
 def test_opening_tree_aggregation_and_partition_cover_all_games() -> None:
     data = load_app_data()
     merged = _merge_trees(data.opening_trees.values())
-    partition = _partition_tree(merged)
+    partition = _partition_tree(_prune_tree(merged))
 
     expected = sum(
         sum(float(child["count"]) for child in tree["children"])
@@ -72,6 +77,7 @@ def test_opening_tree_aggregation_and_partition_cover_all_games() -> None:
     )
     assert math.isclose(first_move_width, 360, abs_tol=2)
     assert len(partition["theta"]) == len(partition["customdata"])
+    assert len(partition["theta"]) < 1500
 
 
 def test_opening_colors_are_stable() -> None:

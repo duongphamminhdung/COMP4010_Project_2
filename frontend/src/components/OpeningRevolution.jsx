@@ -21,12 +21,19 @@ const OPENING_COLORS = {
 
 const FALLBACK_COLORS = ['#c084fc', '#38bdf8', '#fb7185', '#a3e635'];
 
+function nicePopularityCeiling(value) {
+  return Math.max(5, Math.ceil((value + 1) / 5) * 5);
+}
+
 function colorForOpening(opening, index) {
   return OPENING_COLORS[opening] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
 }
 
 function prepareLineData(rows) {
   if (!rows?.length) return { chartData: [], series: [], ranking: [] };
+  const yMax = nicePopularityCeiling(
+    Math.max(...rows.map((row) => Number(row.pct) || 0), 0)
+  );
 
   const openingTotals = new Map();
   rows.forEach((row) => {
@@ -81,7 +88,7 @@ function prepareLineData(rows) {
     .filter((item) => Number.isFinite(item.latestPct))
     .sort((a, b) => b.latestPct - a.latestPct);
 
-  return { chartData, series, ranking, baselineYear, latestYear };
+  return { chartData, series, ranking, baselineYear, latestYear, yMax };
 }
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -109,7 +116,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function OpeningRevolution({ data }) {
   const [selectedOpening, setSelectedOpening] = useState(null);
-  const { chartData, series, ranking, baselineYear, latestYear } = useMemo(
+  const { chartData, series, ranking, baselineYear, latestYear, yMax } = useMemo(
     () => prepareLineData(data),
     [data]
   );
@@ -147,7 +154,7 @@ export default function OpeningRevolution({ data }) {
               label={{ value: 'Year', position: 'insideBottom', offset: -5, fill: '#6b6d7b' }}
             />
             <YAxis
-              domain={[0, (max) => Math.ceil(max + 2)]}
+              domain={[0, yMax]}
               tick={{ fill: '#a8aab8', fontSize: 12 }}
               axisLine={{ stroke: '#3D3B38' }}
               tickLine={{ stroke: '#3D3B38' }}

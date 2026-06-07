@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 
 import pandas as pd
@@ -10,6 +11,10 @@ from shinywidgets import output_widget, render_plotly
 from shiny_app.data import AppData, selected_years
 from shiny_app.theme import COLORS, apply_plotly_theme, opening_color
 from shiny_app.ui_helpers import chart_shell, insight_box, metric_card, section_intro
+
+
+def _nice_popularity_ceiling(value: float) -> float:
+    return max(5.0, math.ceil((value + 1) / 5) * 5)
 
 
 @module.ui
@@ -46,6 +51,8 @@ def opening_trends_server(
     data: AppData,
     selected_eras: Callable[[], tuple[str, ...]],
 ):
+    y_max = _nice_popularity_ceiling(float(data.opening_by_year["pct"].max()))
+
     @reactive.calc
     def filtered() -> pd.DataFrame:
         years = selected_years(selected_eras())
@@ -115,6 +122,7 @@ def opening_trends_server(
                 "title": "Popularity (%)",
                 "ticksuffix": "%",
                 "gridcolor": "#3d3b38",
+                "range": [0, y_max],
             },
             legend={"orientation": "h", "y": 1.14, "x": 0},
             hovermode="x unified",
