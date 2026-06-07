@@ -1,73 +1,176 @@
 # The Evolution of Human Chess Thought in the Age of AI
 
-COMP4010 Data Visualization Project — VinUniversity
+COMP4010 Data Visualization Project, VinUniversity
 
-An interactive data visualization study investigating how AI breakthroughs (AlphaZero 2017, Stockfish NNUE 2020) reshaped human chess playing patterns, using 200,000 Lichess games sampled across 4 time periods and 6 ELO brackets.
+This project studies whether AlphaZero (2017), Stockfish NNUE (2020), and
+widely available engine analysis changed human chess behavior. It uses 200,000
+sampled Lichess games across four eras and six ELO brackets.
 
-## Live Demo
+## Applications
 
-[https://duongphamminhdung.github.io/COMP4010_Project_2/](https://duongphamminhdung.github.io/COMP4010_Project_2/)
+- **React edition:** public GitHub Pages deployment at
+  <https://duongphamminhdung.github.io/COMP4010_Project_2/>
+- **Beyond the Engine:** locally runnable Python Shiny edition in
+  `shiny_app/app.py`
 
-## Visualizations
+Both editions present seven sections:
 
-1. **Opening Tree** — Interactive D3 tree showing how opening repertoires shifted post-AI
-2. **Opening Revolution** — How the popularity of named openings (Sicilian, Queen's Pawn, English, etc.) shifted across eras
-3. **Material & Sacrifices** — Material decay curves and rising sacrifice rates across eras
-4. **Blunder Heatmap** — ELO x period heatmap showing AI coaching tools reduced blunders
-5. **Piece-Square Maps** — Chess board heatmaps comparing piece placement pre-AI vs modern
-6. **Game Length Distribution** — The "comb pattern" at time control boundaries
+1. Opening Tree
+2. Opening Revolution
+3. Opening Simulator
+4. Blunder Heatmap
+5. Game Length Distribution
+6. Piece-Square Maps
+7. Interactive ELO Predictor
 
-## Project Structure
+## Quick Start: Python Shiny
 
-```
-notebooks/
-  01_dataset_preprocessing.ipynb  — Downloads Lichess PGN data, samples 200k games
-  02_visualization.ipynb          — Exploratory visualizations (Plotly, Matplotlib, Seaborn)
-frontend/                         — React app (Vite + Tailwind CSS + D3.js + Recharts)
-```
+Run all commands from the repository root.
 
-## AI and Chess: A Brief History
+### Option A: Conda
 
-AI in chess is often associated with Deep Blue defeating Kasparov in 1997, but that was a computational feat — raw brute force that humans couldn't learn from. The real shift in human chess thought came two decades later:
+Requirements: Conda or Miniconda.
 
-```
-1997                                    2017              2020               2024
-Deep Blue      (no public data)        AlphaZero       Stockfish NNUE     Maia / Leela
-   |===============================////|==================|==================|===>
-                                     ^                  ^                  ^
-                              Humans start         AI evaluation     AI coaching
-                              playing         accessible to       for all levels
-                              differently        everyone
+```bash
+conda env create -f environment.yml
+conda activate beyond-the-engine
+shiny run --reload shiny_app/app.py
 ```
 
-- **Deep Blue (1997):** Defeated Kasparov through minimax search and opening books. A closed system — its evaluations were not available for humans to study.
-- **AlphaZero (2017):** Learned chess from scratch via self-play and neural networks. Played with creativity: fianchettos, exchange sacrifices, unconventional openings. This was the moment top players realized engines could teach new ideas, not just calculate faster.
-- **Stockfish NNUE (2020):** Integrated neural network evaluation into the open-source engine everyone uses. Made AI-level analysis available for free to every player, not just Grandmasters.
-- **Maia Chess / Leela (2023+):** AI models trained to play like humans at specific ELO levels, enabling personalized coaching.
+### Option B: Python virtual environment
 
-Our data starts in 2015-2016 not because of availability, but because that is the true "before" picture — the last era of purely human chess before AlphaZero disrupted how players think about positions, openings, and sacrifices.
+Requirements: Python 3.12.
 
-## Data Pipeline
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+shiny run --reload shiny_app/app.py
+```
 
-- **Source:** Lichess open database (standard rated games with eval annotations)
-- **Sampling:** 200k games across 4 periods (pre-AI 2015-16, early post-AI 2018-19, NNUE era 2021-22, modern 2023-25) x 6 ELO brackets
-- **Output:** 5 CSV files — games, moves, blunders, piece-square counts, material curves
-- **Processing:** Two-phase approach — fast scan for eval-tagged games, then full python-chess parse
+Open the URL printed by Shiny, normally <http://127.0.0.1:8000>.
 
-## Tech Stack
+The aggregated application data is included in the repository, so running the
+dashboard does not require downloading the multi-gigabyte raw Lichess archive.
 
-- **Frontend:** Vite, React, Tailwind CSS v3, D3.js, Recharts
-- **Data:** Python, python-chess, pandas, Lichess PGN database
-- **Visualization (notebooks):** Plotly, Matplotlib, Seaborn
+## Quick Start: React
 
-## Running Locally
+Requirements: Node.js 22.12 or newer and npm.
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
+Vite prints the local development URL. Build the production site with:
+
+```bash
+npm run build
+```
+
+## Reproducibility
+
+- `requirements.txt` pins the direct Python runtime and quality-tool versions.
+- `environment.yml` pins Python 3.12 and the Conda-based environment.
+- `frontend/package-lock.json` locks the complete JavaScript dependency tree.
+- `pyproject.toml` centralizes Ruff, Black, and Pytest configuration.
+- Small aggregated CSV and JSON artifacts required by both apps are stored in
+  `frontend/public/data/`.
+- Raw PGN, compressed archives, generated builds, and local environments are
+  excluded through `.gitignore`.
+
+Verify the Python application with:
+
+```bash
+python -m compileall -q shiny_app tests
+ruff check shiny_app tests
+black --check shiny_app tests
+pytest -q
+python -m pip check
+```
+
+Verify the React application with:
+
+```bash
+cd frontend
+npm run build
+```
+
+## Repository Structure
+
+```text
+.
+├── frontend/
+│   ├── public/data/          # Tracked, frontend-ready CSV and JSON artifacts
+│   ├── src/components/      # React visualization components
+│   └── package-lock.json    # Locked JavaScript dependency tree
+├── shiny_app/
+│   ├── app.py               # Python Shiny entry point and shared navigation
+│   ├── data.py              # Cached data loading and era metadata
+│   ├── theme.py             # Shared semantic colors and Plotly styling
+│   ├── chess_utils.py       # Board rendering, bot, and ELO analytics
+│   ├── modules/             # One Shiny module per analytical section
+│   └── www/styles.css       # Dark-only responsive visual system
+├── notebooks/
+│   ├── 01_dataset_preprocessing.ipynb
+│   ├── 02_visualization.ipynb
+│   └── generate_frontend_data.py
+├── tests/                   # Data, chess, model, and visualization unit tests
+├── main.tex                 # Project report and methodology documentation
+├── environment.yml          # Reproducible Conda environment
+├── requirements.txt         # Pinned Python dependencies
+└── pyproject.toml           # Python quality-tool configuration
+```
+
+This separates application code, aggregated data, exploratory processing,
+tests, and written documentation. The React and Shiny editions share the same
+data artifacts rather than maintaining duplicate pipelines.
+
+## Data Pipeline
+
+1. Stream Lichess PGN archives and reject games without engine evaluations.
+2. Sample games across four eras and six ELO brackets.
+3. Parse accepted games with `python-chess`.
+4. Calculate move quality, blunders, openings, game lengths, and destination
+   square frequencies.
+5. Export compact CSV and JSON artifacts to `frontend/public/data/`.
+6. Load those artifacts in both the React and Python Shiny applications.
+
+The large raw source files are intentionally not committed. To regenerate the
+aggregated artifacts after obtaining the required raw data:
+
+```bash
+python notebooks/generate_frontend_data.py
+```
+
+## Development History
+
+The repository uses focused, descriptive commits for features, design passes,
+data-pipeline changes, report corrections, and review fixes. Examples include:
+
+- `Add interactive ELO prediction section with ACPL regression model`
+- `Move opening tree pruning from frontend to build-time`
+- `Design polish: loading skeleton, active nav, hover states, visual texture`
+- `Code review fixes: extract constants, fix tooltip leak, reduce bot depth`
+
+Inspect the complete history with:
+
+```bash
+git log --oneline --decorate --graph
+```
+
+Contributors should keep future commits scoped to one logical change and use an
+imperative summary that explains the user-visible or technical outcome.
+
+## Documentation
+
+- `main.tex` contains the research questions, visualization rationale,
+  interaction design, ML methodology, findings, and limitations.
+- `shiny_app/README.md` contains Shiny-specific operating notes.
+- This README is the canonical setup and repository guide.
+
 ## Authors
 
-COMP4010 Data Visualization — VinUniversity
+COMP4010 Data Visualization, VinUniversity

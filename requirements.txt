@@ -1,0 +1,13 @@
+# Runtime dependencies
+chess==1.11.2
+numpy==2.3.1
+pandas==2.3.1
+plotly==6.0.1
+python-chess==1.999
+shiny==1.6.2
+shinywidgets==0.8.1
+
+# Development and verification
+black==25.1.0
+pytest==8.4.1
+ruff==0.12.5

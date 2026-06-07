@@ -5,7 +5,7 @@ const sections = [
   { id: 'opening-revolution', label: 'Opening Revolution' },
   { id: 'opening-simulator', label: 'Simulator' },
   { id: 'blunders', label: 'Blunders' },
-  { id: 'pca-scatter', label: 'Player Profiles' },
+  { id: 'game-length', label: 'Game Length' },
   { id: 'piece-square', label: 'Piece Squares' },
   { id: 'guess-elo', label: 'Guess ELO' },
 ];

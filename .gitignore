@@ -24,6 +24,7 @@ frontend/.vite/
 *.zst
 
 # Aggregated frontend data (gh-pages deploy copies these to data/*.csv on site root)
+!frontend/public/data/opening_by_year_1500.csv
 !data/blunder_rate.csv
 !data/first_move_by_period.csv
 !data/game_length.csv

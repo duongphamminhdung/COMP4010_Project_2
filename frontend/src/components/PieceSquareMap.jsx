@@ -179,7 +179,7 @@ export default function PieceSquareMap({ data }) {
             <p className="text-sm text-text-secondary leading-relaxed mb-3 shrink-0">
               Share of placements by square (all eras, both colors).
             </p>
-            <div className="flex-1 flex flex-col justify-center gap-3 text-xs text-text-secondary leading-relaxed">
+            <div className="flex-1 flex flex-col justify-center gap-3 text-sm text-text-secondary leading-relaxed">
               <p>
                 Each square is the % of this piece&apos;s visits there across ~200k games.
                 <span className="text-white font-medium"> Greener</span> = more frequent.
@@ -194,6 +194,9 @@ export default function PieceSquareMap({ data }) {
                   Top squares: {stats.top3.map((s) => `${s.square} (${s.count.toFixed(1)}%)`).join(', ')}.
                 </p>
               )}
+              <p className="pt-3 border-t border-border text-text-secondary">
+                Piece placement patterns are remarkably stable across eras. Knights still cluster on c3, f3, c6, and f6; bishops gravitate toward c4, f4, and the fianchetto squares. The geometry of the board and the movement rules of each piece create natural &ldquo;best squares&rdquo; that no amount of AI innovation can override. What AI did change is the frequency with which pieces reach their optimal squares: the heatmaps show slightly more concentrated hot spots in later eras, suggesting players became more efficient at reaching good positions, even if the positions themselves did not shift.
+              </p>
             </div>
           </div>
         </div>

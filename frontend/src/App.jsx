@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Section from './components/Section';
@@ -8,8 +8,8 @@ import OpeningRevolution from './components/OpeningRevolution';
 import OpeningSimulator from './components/OpeningSimulator';
 import EraTimeline from './components/EraTimeline';
 import BlunderHeatmap from './components/BlunderHeatmap';
+import GameLength from './components/GameLength';
 import PieceSquareMap from './components/PieceSquareMap';
-import PlayerProfilePCA from './components/PlayerProfilePCA';
 import GuessELO from './components/GuessELO';
 import { loadAllData } from './data/dataLoader';
 
@@ -129,18 +129,18 @@ function App() {
       </Section>
 
       <Section
-        id="pca-scatter"
+        id="game-length"
         number="Section 05"
-        title="Player Profiles: Did AI Create a New Type of Player?"
-        description="PCA scatter plot of behavioral features, colored by era."
+        title="Did Games Become Shorter?"
+        description="Normalized game-length distributions across the four eras."
         notes={[
-          { label: 'Read', text: 'Each dot is one player-game. Clusters show similar playing styles.' },
-          { label: 'Why', text: 'PCA reduces 5 behavioral metrics into 2 dimensions for visual comparison.' },
-          { label: 'Explore', text: 'Toggle eras on/off to see where pre-AI and post-AI players cluster.' },
+          { label: 'Read', text: 'Each curve shows the percentage of games ending at that ply.' },
+          { label: 'Why', text: 'Normalization makes eras comparable despite different sample sizes.' },
+          { label: 'Explore', text: 'Hover to compare eras and use the median cards as a summary.' },
         ]}
-        discussion={'LDA (Linear Discriminant Analysis) is a supervised dimensionality reduction technique that finds the directions maximally separating the four eras. Unlike PCA, which ignores class labels, LDA uses era information during training to find the linear combination of five behavioral metrics (ACPL, blunder rate, capture %, check %, moves) that best discriminates between eras. If AI-era players have measurably different behavioral profiles, we expect clear separation along LD1. A Random Forest classifier further identifies which specific behaviors drive the era classification.'}
+        discussion={'Games became slightly shorter after the pre-AI era, but the change is modest rather than dramatic. Median length falls from 65 ply (32.5 moves) in Pre-AI games to 62 ply (31 moves) in the NNUE era, then rises slightly to 63 ply in the Modern era. Mean length also declines from 70.7 to 68.7 ply between Pre-AI and Modern. The overlapping curves show that AI did not fundamentally reshape game duration; the result is better interpreted as a small behavioral shift that may also reflect changes in time controls and online playing habits.'}
       >
-        <PlayerProfilePCA data={data.playerPca} />
+        <GameLength data={data.gameLength} />
       </Section>
 
       <Section
@@ -153,7 +153,6 @@ function App() {
           { label: 'Why', text: 'Piece locations reveal strategic habits, not just results.' },
           { label: 'Explore', text: 'Switch pieces and compare center versus flank activity.' },
         ]}
-        discussion={'The piece-square maps reveal that piece placement patterns are remarkably stable across eras. Knights still cluster on c3, f3, c6, and f6; bishops gravitate toward c4, f4, and the fianchetto squares. This makes sense: the geometry of the board and the movement rules of each piece create natural "best squares" that no amount of AI innovation can override. What AI did change is the frequency with which pieces reach their optimal squares: the heatmaps show slightly more concentrated hot spots in later eras, suggesting players became more efficient at reaching good positions, even if the positions themselves did not shift.'}
       >
         <PieceSquareMap data={data.pieceSquares} />
       </Section>
