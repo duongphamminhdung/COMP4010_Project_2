@@ -1,10 +1,10 @@
 import { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
-import { ELO_BRACKETS } from '../data/constants';
+import { ELO_BRACKETS, PERIOD_COLORS_BY_LABEL } from '../data/constants';
 import { HEATMAP_VIZ_HEIGHT } from './ChessBoard';
 
 const PERIOD_LABELS = ['Pre-AI', 'Early Post-AI', 'NNUE Era', 'Modern'];
-const PERIOD_COLORS = ['#60a5fa', '#c084fc', '#fbbf24', '#34d399'];
+const PERIOD_COLORS = PERIOD_LABELS.map(p => PERIOD_COLORS_BY_LABEL[p]);
 
 const MARGIN = { top: 35, right: 20, bottom: 10, left: 100 };
 const IMPROVE = '#34d399';

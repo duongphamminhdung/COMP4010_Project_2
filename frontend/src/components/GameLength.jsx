@@ -9,13 +9,9 @@ import {
   CartesianGrid,
   ReferenceLine,
 } from 'recharts';
+import { PERIOD_COLORS_BY_LABEL } from '../data/constants';
 
-const PERIOD_COLORS = {
-  'Pre-AI': '#60a5fa',
-  'Early Post-AI': '#c084fc',
-  'NNUE Era': '#fbbf24',
-  'Modern': '#34d399',
-};
+const PERIOD_COLORS = PERIOD_COLORS_BY_LABEL;
 
 const PERIOD_ORDER = ['Pre-AI', 'Early Post-AI', 'NNUE Era', 'Modern'];
 const PLY_MIN = 7;

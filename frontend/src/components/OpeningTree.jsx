@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
 import { Chess } from 'chess.js';
-import { PERIOD_ORDER, PERIOD_LABELS } from '../data/constants';
+import { PERIOD_ORDER, PERIOD_LABELS, PERIOD_COLORS } from '../data/constants';
 import { BOARD_LIGHT, BOARD_DARK } from './ChessBoard';
 
 // Color palette for root-level move families (ebemunk uses schemeCategory10)
@@ -293,11 +293,11 @@ export default function OpeningTree({ data }) {
           <button
             key={p}
             onClick={() => { setSelectedPeriod(p); setHoverInfo(null); }}
-            className={`btn-press px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-              selectedPeriod === p
-                ? 'bg-primary text-dark'
-                : 'bg-card text-text-secondary hover:bg-border'
-            }`}
+            className="btn-press px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+            style={selectedPeriod === p
+              ? { background: PERIOD_COLORS[p], color: '#111' }
+              : { background: 'rgba(49,46,43,0.6)', color: PERIOD_COLORS[p] }
+            }
           >
             {PERIOD_LABELS[p]?.split('\n')[0] || p}
           </button>
