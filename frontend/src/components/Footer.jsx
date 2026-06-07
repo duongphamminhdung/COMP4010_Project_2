@@ -34,6 +34,15 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-2">
+        <p className="text-xs text-text-muted uppercase tracking-widest">Authors</p>
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-1">
+          {['Duong Pham Minh Dung', 'Chau Hoang Phuc', 'Vu Duc Duy', 'Trinh Tuan Hung'].map((name) => (
+            <span key={name} className="text-sm font-medium text-text-secondary">{name}</span>
+          ))}
+        </div>
+      </div>
     </footer>
   );
 }

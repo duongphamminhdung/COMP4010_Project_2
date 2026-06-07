@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import ChessBoard from './ChessBoard';
 
 const PIECE_BOARD_SIZE = 480;
@@ -11,10 +11,17 @@ const PIECE_OPTIONS = [
 ];
 
 const PIECE_INSIGHT = {
-  N: 'Knights gravitate toward central outposts where they control many squares without being easily challenged.',
-  B: 'Bishops thrive on long diagonals and open files, with fianchetto placements being a common modern pattern.',
-  R: 'Rooks dominate open files and the 7th rank, where they cut into the opponent\'s position.',
-  Q: 'The queen\'s mobility lets her influence the entire board, with a preference for central and semi-central squares.',
+  N: 'Best on central outposts — c3, f3, c6, f6. Needs 2–3 moves to reach the rim; players rarely waste that tempo.',
+  B: 'Thrives on open diagonals. Fianchetto squares (g2, b2) and c4/f4 dominate. Closed positions bury it.',
+  R: 'Belongs on open files and the 7th rank. Activation is slow — hot squares appear only in the middlegame.',
+  Q: 'Prefers central and semi-central squares but avoids early exposure. Activity peaks in sharp, open positions.',
+};
+
+const PIECE_ERA_NOTE = {
+  N: 'Stable across all eras — knight outposts are universal.',
+  B: 'Fianchetto use grew post-AI as engine-approved setups spread.',
+  R: 'Open-file patterns unchanged; AI reinforced rather than redefined them.',
+  Q: 'Slightly more central activity in modern era — sharper play overall.',
 };
 
 function countsBySquare(rows) {
@@ -64,6 +71,8 @@ function computeStats(rows) {
 
 export default function PieceSquareMap({ data }) {
   const [selectedPiece, setSelectedPiece] = useState('N');
+  const [boardOpacity, setBoardOpacity] = useState(1);
+  const fadeTimer = useRef(null);
 
   const pieceLabel = PIECE_OPTIONS.find((p) => p.key === selectedPiece)?.label ?? selectedPiece;
 
@@ -75,6 +84,18 @@ export default function PieceSquareMap({ data }) {
     };
   }, [data, selectedPiece]);
 
+  function handlePieceSelect(key) {
+    if (key === selectedPiece) return;
+    clearTimeout(fadeTimer.current);
+    setBoardOpacity(0);
+    fadeTimer.current = setTimeout(() => {
+      setSelectedPiece(key);
+      setBoardOpacity(1);
+    }, 180);
+  }
+
+  useEffect(() => () => clearTimeout(fadeTimer.current), []);
+
   if (!data?.length) return null;
 
   return (
@@ -84,15 +105,17 @@ export default function PieceSquareMap({ data }) {
           <button
             key={p.key}
             type="button"
-            onClick={() => setSelectedPiece(p.key)}
-            title={p.label}
-            className={`btn-press flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl text-2xl sm:text-3xl transition-all ${
+            onClick={() => handlePieceSelect(p.key)}
+            className={`btn-press flex flex-col items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl gap-0.5 transition-all ${
               selectedPiece === p.key
                 ? 'bg-primary text-dark shadow-lg shadow-primary/30 scale-110'
                 : 'bg-card text-white hover:bg-border hover:scale-105'
             }`}
           >
-            {p.symbol}
+            <span className="text-2xl sm:text-3xl leading-none">{p.symbol}</span>
+            <span className="text-[10px] sm:text-xs font-semibold tracking-wide uppercase leading-none">
+              {p.label}
+            </span>
           </button>
         ))}
       </div>
@@ -109,94 +132,98 @@ export default function PieceSquareMap({ data }) {
           {/* Column 1: heatmap (largest) */}
           <div
             className="flex-1 min-w-0 flex items-center justify-center rounded-lg border border-border p-2 lg:p-3"
-            style={{ background: 'rgba(49,46,43,0.25)' }}
+            style={{ background: 'rgba(49,46,43,0.25)', transition: 'opacity 180ms ease', opacity: boardOpacity }}
           >
             <ChessBoard data={boardData} valueSuffix="%" fixedSize={PIECE_BOARD_SIZE} />
           </div>
 
-          {/* Column 2: KPI (narrowest) */}
+          {/* Column 2: KPI */}
           <div
-            className="w-full lg:w-[9.25rem] shrink-0 flex flex-col rounded-lg border border-border p-2.5"
+            className="w-full lg:w-52 shrink-0 flex flex-col rounded-lg border border-border p-4 gap-3"
             style={{ background: 'rgba(49,46,43,0.4)' }}
           >
-            <p className="text-[10px] text-text-secondary uppercase tracking-wide mb-2 shrink-0 leading-tight">
-              {pieceLabel}
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-widest leading-tight">
+              {pieceLabel} stats
             </p>
-            <div className="flex flex-col gap-1.5 flex-1 min-h-0">
-              {stats?.hottest && (
-                <div className="rounded-md px-2 py-2 border border-border shrink-0"
-                  style={{ background: 'rgba(26,26,26,0.5)' }}>
-                  <div className="text-[10px] text-text-muted mb-0.5 leading-tight">Top sq.</div>
-                  <div className="text-sm font-bold text-white leading-tight">{stats.hottest.square}</div>
-                  <div className="text-sm font-bold text-primary">{stats.hottest.count.toFixed(1)}%</div>
+
+            {stats?.hottest && (
+              <div className="rounded-md px-3 py-3 border border-border"
+                style={{ background: 'rgba(26,26,26,0.5)' }}>
+                <div className="text-xs text-text-muted mb-1">Top square</div>
+                <div className="text-2xl font-bold text-white leading-none">{stats.hottest.square}</div>
+                <div className="text-lg font-bold text-primary mt-0.5">{stats.hottest.count.toFixed(1)}%</div>
+                <div className="text-xs text-text-muted mt-1">of all placements</div>
+              </div>
+            )}
+
+            {stats && (
+              <div className="rounded-md px-3 py-3 border border-border"
+                style={{ background: 'rgba(26,26,26,0.5)' }}>
+                <div className="text-xs text-text-muted mb-1">Center control</div>
+                <div className="text-2xl font-bold text-primary leading-none">{stats.centerPct.toFixed(1)}%</div>
+                <div className="text-xs text-text-muted mt-1">of moves in c3–f6 zone</div>
+              </div>
+            )}
+
+            {stats && (
+              <div className="rounded-md px-3 py-3 border border-border"
+                style={{ background: 'rgba(26,26,26,0.5)' }}>
+                <div className="text-xs text-text-muted mb-1">Squares used</div>
+                <div className="text-2xl font-bold text-white leading-none">
+                  {stats.activeSquares}
+                  <span className="text-base text-text-muted font-normal"> / 64</span>
                 </div>
-              )}
-              {stats && (
-                <div className="rounded-md px-2 py-2 border border-border shrink-0"
-                  style={{ background: 'rgba(26,26,26,0.5)' }}>
-                  <div className="text-[10px] text-text-muted mb-0.5 leading-tight">Center</div>
-                  <div className="text-sm font-bold text-primary">{stats.centerPct.toFixed(1)}%</div>
-                </div>
-              )}
-              {stats && (
-                <div className="rounded-md px-2 py-2 border border-border shrink-0"
-                  style={{ background: 'rgba(26,26,26,0.5)' }}>
-                  <div className="text-[10px] text-text-muted mb-0.5 leading-tight">Sq. used</div>
-                  <div className="text-sm font-bold text-white">
-                    {stats.activeSquares}<span className="text-text-muted font-normal">/64</span>
+              </div>
+            )}
+
+            {stats?.top3.length > 0 && (
+              <div className="rounded-md border border-border px-3 py-3 flex flex-col gap-2"
+                style={{ background: 'rgba(26,26,26,0.5)' }}>
+                <div className="text-xs text-text-muted">Top 3 squares</div>
+                {stats.top3.map((row, i) => (
+                  <div key={row.square} className="flex items-center justify-between">
+                    <span className="text-sm text-text-secondary font-mono">{i + 1}. {row.square}</span>
+                    <span className="text-sm font-bold text-white tabular-nums">{row.count.toFixed(1)}%</span>
                   </div>
-                </div>
-              )}
-              {stats?.top3.length > 0 && (
-                <div
-                  className="rounded-md border border-border px-2 py-2 flex-1 flex flex-col min-h-0"
-                  style={{ background: 'rgba(26,26,26,0.5)' }}
-                >
-                  <div className="text-[10px] text-text-muted mb-1.5 shrink-0">Top 3</div>
-                  <ul className="space-y-1.5 text-xs flex-1">
-                    {stats.top3.map((row, i) => (
-                      <li key={row.square}>
-                        <span className="text-text-muted">{i + 1}. {row.square}</span>
-                        <span className="block text-white font-semibold tabular-nums">
-                          {row.count.toFixed(1)}%
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Column 3: explanation */}
           <div
-            className="w-full lg:flex-1 lg:min-w-[11rem] min-h-0 rounded-lg border p-4 flex flex-col"
+            className="w-full lg:flex-1 lg:min-w-[11rem] min-h-0 rounded-lg border p-4 flex flex-col justify-between"
             style={{ background: 'rgba(129,182,76,0.03)', borderColor: 'rgba(129,182,76,0.1)' }}
           >
-            <h3 className="text-sm font-semibold text-white font-serif mb-2 shrink-0">
-              Reading the board
-            </h3>
-            <p className="text-sm text-text-secondary leading-relaxed mb-3 shrink-0">
-              Share of placements by square (all eras, both colors).
-            </p>
-            <div className="flex-1 flex flex-col justify-center gap-3 text-sm text-text-secondary leading-relaxed">
+            <div className="flex flex-col gap-3 text-sm text-text-secondary leading-relaxed">
+              <h3 className="text-sm font-semibold text-white font-serif">
+                Reading the board
+              </h3>
+
               <p>
-                Each square is the % of this piece&apos;s visits there across ~200k games.
-                <span className="text-white font-medium"> Greener</span> = more frequent.
-                Hover for exact values.
+                % of placements per square across ~200k games.{' '}
+                <span className="text-white font-medium">Brighter orange</span> = more visits.
+                Hover any square for the exact value.
               </p>
-              <p className="pt-3 border-t border-border">
-                <span className="text-white font-medium">{pieceLabel}:</span>{' '}
-                {PIECE_INSIGHT[selectedPiece]}
-              </p>
-              {stats?.top3.length > 0 && (
-                <p className="text-text-muted">
-                  Top squares: {stats.top3.map((s) => `${s.square} (${s.count.toFixed(1)}%)`).join(', ')}.
-                </p>
-              )}
-              <p className="pt-3 border-t border-border text-text-secondary">
-                Piece placement patterns are remarkably stable across eras. Knights still cluster on c3, f3, c6, and f6; bishops gravitate toward c4, f4, and the fianchetto squares. The geometry of the board and the movement rules of each piece create natural &ldquo;best squares&rdquo; that no amount of AI innovation can override. What AI did change is the frequency with which pieces reach their optimal squares: the heatmaps show slightly more concentrated hot spots in later eras, suggesting players became more efficient at reaching good positions, even if the positions themselves did not shift.
-              </p>
+
+              <div className="border-t border-border pt-3">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-1">{pieceLabel}</p>
+                <p>{PIECE_INSIGHT[selectedPiece]}</p>
+              </div>
+
+              <div className="border-t border-border pt-3">
+                <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">AI era shift</p>
+                <p>{PIECE_ERA_NOTE[selectedPiece]}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <span
+                className="text-6xl opacity-20 select-none leading-none"
+                style={{ color: '#ffffff' }}
+              >
+                {PIECE_OPTIONS.find((p) => p.key === selectedPiece)?.symbol}
+              </span>
             </div>
           </div>
         </div>
