@@ -29,12 +29,12 @@ export default function Section({ id, number, title, description, notes = [], di
       <div className="section-divider mb-10 sm:mb-14" />
 
       {number && (
-        <span className="text-primary text-sm font-semibold tracking-widest uppercase">
+        <span className="text-primary text-base sm:text-lg font-bold tracking-widest uppercase">
           {number}
         </span>
       )}
       {title && (
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-2 mb-3 font-serif leading-tight text-balance">{title}</h2>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-2 mb-3 font-serif leading-tight text-balance">{title}</h2>
       )}
       {description && (
         <p className="text-text-secondary text-sm sm:text-base max-w-2xl leading-relaxed mb-6">
@@ -63,7 +63,7 @@ export default function Section({ id, number, title, description, notes = [], di
       </div>
 
       {discussion && (
-        <div className="mt-6 rounded-lg border p-5 sm:p-7" style={{ background: 'rgba(26,26,26,0.82)', borderColor: 'rgba(129,182,76,0.18)' }}>
+        <div className="mt-6 rounded-lg border p-5 sm:p-7" style={{ background: 'rgba(26,26,26,0.95)', borderColor: 'rgba(129,182,76,0.25)' }}>
           <h3 className="text-xl sm:text-2xl font-bold text-primary mb-4 font-serif">Discussion</h3>
           <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-3xl">{discussion}</p>
         </div>

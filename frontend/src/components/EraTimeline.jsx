@@ -132,36 +132,37 @@ export default function EraTimeline() {
             {ERAS.map((era, index) => (
               <article
                 key={era.id}
-                className={`relative border bg-card/45 card-hover transition-all duration-700 ${
+                className={`relative border bg-card/95 card-hover transition-all duration-700 ${
                   visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{
-                  borderColor: `${era.accent}45`,
+                  borderColor: `${era.accent}60`,
+                  boxShadow: `0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 ${era.accent}15`,
                   transitionDelay: visible ? `${index * 110}ms` : '0ms',
                 }}
               >
-                <div className="absolute -top-2 left-5 flex items-center gap-2">
+                <div className="absolute -top-2.5 left-5 flex items-center gap-2">
                   <span
-                    className="w-4 h-4 border-2 border-dark"
+                    className="w-5 h-5 border-2 border-dark"
                     style={{
                       background: era.accent,
-                      boxShadow: `0 0 18px ${era.accent}55`,
+                      boxShadow: `0 0 22px ${era.accent}80`,
                     }}
                   />
                 </div>
 
-                <div className="p-4 sm:p-5">
+                <div className="p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: era.accent }}>
+                      <p className="text-sm font-bold uppercase tracking-wide" style={{ color: era.accent }}>
                         {era.years}
                       </p>
-                      <h3 className="text-xl font-bold text-white font-serif mt-1">
+                      <h3 className="text-2xl font-bold text-white font-serif mt-1">
                         {era.label}
                       </h3>
                     </div>
                     <span
-                      className="text-4xl leading-none font-serif opacity-80"
+                      className="text-5xl leading-none font-serif opacity-90"
                       style={{ color: era.accent }}
                     >
                       {era.piece}
@@ -169,14 +170,14 @@ export default function EraTimeline() {
                   </div>
 
                   <div
-                    className="h-1 w-16 mb-4"
+                    className="h-[3px] w-20 mb-4 rounded-full"
                     style={{ background: era.accent }}
                   />
 
-                  <p className="text-sm font-semibold text-white mb-1">
+                  <p className="text-base font-bold text-white mb-1">
                     {era.milestone}
                   </p>
-                  <p className="text-xs text-text-muted mb-3">
+                  <p className="text-sm text-text-muted mb-3">
                     {era.trigger}
                   </p>
                   <p className="text-sm text-text-secondary leading-relaxed mb-4">
@@ -184,8 +185,8 @@ export default function EraTimeline() {
                   </p>
 
                   <div
-                    className="border-t pt-3 text-xs font-semibold uppercase tracking-wide"
-                    style={{ borderColor: `${era.accent}35`, color: era.accent }}
+                    className="border-t pt-3 text-sm font-bold uppercase tracking-wide"
+                    style={{ borderColor: `${era.accent}45`, color: era.accent }}
                   >
                     {era.signal}
                   </div>
