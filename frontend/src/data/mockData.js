@@ -1,4 +1,4 @@
-// Mock data for "The Evolution of Human Chess Thought in the Age of AI"
+// Mock data for "The Evolution of Human Thinking in the Age of AI"
 // Realistic chess statistics based on Lichess data patterns
 
 export const PERIOD_LABELS = {

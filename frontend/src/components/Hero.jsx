@@ -29,7 +29,7 @@ export default function Hero() {
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-6 sm:mb-7 font-serif text-balance">
           The Evolution of{' '}
-          <span className="text-primary">Human Chess Thought</span>{' '}
+          <span className="text-primary">Human Thinking</span>{' '}
           in the Age of AI
         </h1>
 
