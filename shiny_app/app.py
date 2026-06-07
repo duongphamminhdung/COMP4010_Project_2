@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from shiny import App, Inputs, Outputs, Session, reactive, ui
+from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
 APP_DIR = Path(__file__).resolve().parent
 REPO_ROOT = APP_DIR.parent
@@ -39,6 +39,96 @@ from shiny_app.modules.piece_squares import (  # noqa: E402
 
 WWW_DIR = APP_DIR / "www"
 DATA = load_app_data()
+
+SIDEBAR_CONTENT = {
+    "overview": (
+        "Project guide",
+        "Start with the story",
+        "Move through the sections from repertoire structure to the interactive rating signal.",
+        "Each section gives this panel a focused role.",
+        False,
+    ),
+    "tree": (
+        "Section 01",
+        "Read the tree",
+        "The opening map combines all four snapshots so the structure stays readable.",
+        "Hover from the center outward. Each ring adds one ply.",
+        False,
+    ),
+    "trends": (
+        "Section 02",
+        "Choose the timeline",
+        "Select the eras whose years should remain visible in the opening-popularity chart.",
+        "Keep adjacent eras selected to see whether adoption was gradual.",
+        True,
+    ),
+    "simulator": (
+        "Section 03",
+        "Opening lab",
+        "Choose an opening in the main panel, then step through its defining moves.",
+        "Pause on any move to connect the name with the board position.",
+        False,
+    ),
+    "blunders": (
+        "Section 04",
+        "Compare accuracy",
+        "Use eras here to control the heatmap columns and endpoint comparisons.",
+        "Keep Pre-AI and Modern selected to reveal the full change cards.",
+        True,
+    ),
+    "length": (
+        "Section 05",
+        "Compare duration",
+        "Choose which era distributions and median cards appear together.",
+        "Two or more curves make shape differences easier to judge.",
+        True,
+    ),
+    "pieces": (
+        "Section 06",
+        "Spatial lens",
+        "Select the eras available to the local piece-placement view.",
+        "Use the same piece across eras to compare hotspot concentration.",
+        True,
+    ),
+    "elo": (
+        "Section 07",
+        "Play the model",
+        "Play White for at least 20 moves, then inspect the ACPL-based rating signal.",
+        "This is a noisy analytical demo, not a true rating measurement.",
+        False,
+    ),
+}
+
+
+def contextual_sidebar(section: str, selected: tuple[str, ...]) -> ui.Tag:
+    kicker, title, copy, tip, show_eras = SIDEBAR_CONTENT.get(
+        section,
+        SIDEBAR_CONTENT["overview"],
+    )
+    return ui.div(
+        ui.div(kicker, class_="sidebar-kicker"),
+        ui.h2(title),
+        ui.p(copy, class_="sidebar-copy"),
+        (
+            ui.TagList(
+                ui.div("Era comparison", class_="sidebar-control-label"),
+                ui.input_checkbox_group(
+                    "eras",
+                    None,
+                    choices={period: PERIOD_DISPLAY[period] for period in PERIOD_ORDER},
+                    selected=list(selected),
+                ),
+            )
+            if show_eras
+            else None
+        ),
+        ui.div(
+            ui.span("Tip"),
+            ui.p(tip),
+            class_="sidebar-tip",
+        ),
+        class_="section-sidebar-content",
+    )
 
 
 def overview_ui() -> ui.Tag:
@@ -128,8 +218,8 @@ def overview_ui() -> ui.Tag:
             ui.div(
                 ui.h2("How to explore"),
                 ui.p(
-                    "Use the sidebar to filter eras across linked views, then use each "
-                    "section's controls for a focused comparison. Hover charts for exact values."
+                    "The sidebar changes with each section, exposing only the controls "
+                    "and guidance needed for that view. Hover charts for exact values."
                 ),
                 class_="overview-heading",
             ),
@@ -149,7 +239,9 @@ def overview_ui() -> ui.Tag:
                 ui.div(
                     ui.span("03", class_="journey-number"),
                     ui.h3("Become the data"),
-                    ui.p("Play against the bot and generate your own prediction."),
+                    ui.p(
+                        "Play against the bot and inspect a single-game rating signal."
+                    ),
                     class_="journey-card",
                 ),
                 class_="journey-grid",
@@ -180,7 +272,7 @@ app_ui = ui.page_navbar(
         piece_squares_ui("piece_squares"),
         value="pieces",
     ),
-    ui.nav_panel("Guess ELO", elo_predictor_ui("elo_predictor"), value="elo"),
+    ui.nav_panel("Rating Signal", elo_predictor_ui("elo_predictor"), value="elo"),
     title=ui.div(
         ui.span("♞", class_="brand-mark"),
         ui.span("Beyond the Engine", class_="brand-name"),
@@ -189,27 +281,10 @@ app_ui = ui.page_navbar(
     id="main_navigation",
     selected="overview",
     sidebar=ui.sidebar(
-        ui.div("Linked filter", class_="sidebar-kicker"),
-        ui.h2("Compare eras"),
-        ui.p(
-            "This selection updates every historical chart while preserving each "
-            "section's local controls.",
-            class_="sidebar-copy",
-        ),
-        ui.input_checkbox_group(
-            "eras",
-            None,
-            choices={period: PERIOD_DISPLAY[period] for period in PERIOD_ORDER},
-            selected=PERIOD_ORDER,
-        ),
-        ui.div(
-            ui.span("Tip"),
-            ui.p("Keep at least two eras selected when looking for change."),
-            class_="sidebar-tip",
-        ),
+        ui.output_ui("section_sidebar"),
         width=275,
         open="desktop",
-        class_="global-sidebar",
+        class_="global-sidebar contextual-sidebar",
     ),
     header=ui.head_content(
         ui.tags.meta(name="viewport", content="width=device-width, initial-scale=1"),
@@ -249,6 +324,13 @@ app_ui = ui.page_navbar(
 def server(input: Inputs, output: Outputs, session: Session) -> None:
     last_valid_eras = reactive.value(tuple(PERIOD_ORDER))
 
+    @render.ui
+    def section_sidebar():
+        section = input.main_navigation() or "overview"
+        with reactive.isolate():
+            selected = last_valid_eras.get()
+        return contextual_sidebar(section, selected)
+
     @reactive.effect
     def _keep_era_selection_valid() -> None:
         selected = tuple(input.eras() or ())
@@ -266,7 +348,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:
         selected = tuple(input.eras() or ())
         return selected or last_valid_eras.get()
 
-    opening_tree_server("opening_tree", DATA, selected_eras)
+    opening_tree_server("opening_tree", DATA)
     opening_trends_server("opening_trends", DATA, selected_eras)
     opening_simulator_server("opening_simulator")
     blunders_server("blunders", DATA, selected_eras)

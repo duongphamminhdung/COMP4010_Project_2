@@ -252,7 +252,7 @@ def predict_elo(
     result: str | None = None,
     bot_elo: int = 1300,
 ) -> tuple[float, tuple[float, ...]]:
-    """Predict an ELO value and bracket probabilities from average eval loss."""
+    """Estimate an illustrative rating signal from average eval loss."""
     mean_drop = sum(eval_drops) / len(eval_drops) if eval_drops else 0.01
     acpl = max(mean_drop * float(model.get("eval_to_cp", 100)), 1.0)
     estimated = float(model["a"]) - float(model["b"]) * math.log(acpl)

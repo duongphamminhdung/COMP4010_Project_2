@@ -7,7 +7,7 @@ const sections = [
   { id: 'blunders', label: 'Blunders' },
   { id: 'game-length', label: 'Game Length' },
   { id: 'piece-square', label: 'Piece Squares' },
-  { id: 'guess-elo', label: 'Guess ELO' },
+  { id: 'guess-elo', label: 'Rating Signal' },
 ];
 
 export default function Navbar() {

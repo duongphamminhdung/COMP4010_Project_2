@@ -4,14 +4,8 @@ import { Chess } from 'chess.js';
 import { PERIOD_ORDER, PERIOD_LABELS } from '../data/constants';
 import { BOARD_LIGHT, BOARD_DARK } from './ChessBoard';
 
-// Color palette for root-level move families
-const ROOT_COLORS = {
-  'e4':   '#a855f7', // purple
-  'd4':   '#22c55e', // green
-  'c4':   '#2dd4bf', // teal/aqua
-  'Nf3':  '#38bdf8', // sky blue
-  'g3':   '#f59e0b', // amber
-};
+// Color palette for root-level move families (ebemunk uses schemeCategory10)
+const ROOT_COLORS = d3.scaleOrdinal(d3.schemeCategory10);
 
 // Piece SVGs for the mini board (unicode)
 const PIECE_UNICODE = {

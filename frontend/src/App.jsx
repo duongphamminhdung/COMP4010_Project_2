@@ -193,17 +193,7 @@ function App() {
           { label: 'Explore', text: 'Hover to compare eras and use the median cards as a summary.' },
         ]}
         discussion={<>
-          Games became slightly shorter after the{' '}
-          <span style={{ color: '#60a5fa', fontWeight: 700 }}>Pre-AI</span> era, but the change is modest rather than dramatic. Median length falls from{' '}
-          <span style={{ color: '#e2e8f0', fontWeight: 700 }}>65 ply (32.5 moves)</span> in{' '}
-          <span style={{ color: '#60a5fa', fontWeight: 700 }}>Pre-AI</span> games to{' '}
-          <span style={{ color: '#e2e8f0', fontWeight: 700 }}>62 ply (31 moves)</span> in the{' '}
-          <span style={{ color: '#fbbf24', fontWeight: 700 }}>NNUE Era</span>, then rises slightly to{' '}
-          <span style={{ color: '#e2e8f0', fontWeight: 700 }}>63 ply</span> in the{' '}
-          <span style={{ color: '#34d399', fontWeight: 700 }}>Modern</span> era. Mean length also declines from{' '}
-          <span style={{ color: '#e2e8f0', fontWeight: 700 }}>70.7 to 68.7 ply</span> between{' '}
-          <span style={{ color: '#60a5fa', fontWeight: 700 }}>Pre-AI</span> and{' '}
-          <span style={{ color: '#34d399', fontWeight: 700 }}>Modern</span>. The overlapping curves show that AI did not fundamentally reshape game duration; the result is better interpreted as a small behavioral shift that may also reflect changes in time controls and online playing habits.
+          At first glance the histogram looks like a <strong className="text-white">comb distribution</strong>: odd-numbered plies have noticeably higher peaks, meaning Black is more likely to end any given game (win, lose or draw). Ignoring the peaks, the overall shape is a normal distribution centered around 70 ply. But the peaks are the real story. The largest peak sits at <span style={{ color: '#e2e8f0', fontWeight: 700 }}>ply 81</span> (Black's 40th move), a second peak at <span style={{ color: '#e2e8f0', fontWeight: 700 }}>ply 120</span> (White's 60th move), and a tiny but visible peak at ply 160. These align almost perfectly with <span style={{ color: '#60a5fa', fontWeight: 700 }}>classical time controls</span>: 120 minutes for 40 moves, then 60 minutes for 20 moves, then 15 minutes for the rest with a 30-second increment starting on move 61. The peaks likely reflect players pushing to make the time control, only to realize they have ruined their position — or simply running out of time. The correspondence is too precise to be coincidental.
         </>}
       >
         <GameLength data={data.gameLength} />
@@ -226,17 +216,15 @@ function App() {
       <Section
         id="guess-elo"
         number="Section 07"
-        title="Can We Guess Your ELO?"
-        description="Play a game against our bot and let the model predict your rating bracket."
+        title="How Strong Did This Game Look?"
+        description="Play a game against our bot and inspect a rough single-game rating signal."
         notes={[
           { label: 'Play', text: 'You play White against a ~1300 ELO bot. Click a piece, then click where to move.' },
-          { label: 'Model', text: 'An ACPL regression model predicts your ELO from move quality, calibrated on 200k real games.' },
-          { label: 'Explore', text: 'After 20 moves, hit Predict. If you win, your estimate gets a boost.' },
+          { label: 'Model', text: 'A noisy ACPL regression demo turns move quality into an illustrative bracket signal.' },
+          { label: 'Explore', text: 'After 20 moves, estimate the signal. Treat it as a visualization, not a real rating.' },
         ]}
         discussion={<>
-          The prediction model uses <strong className="text-white">Average Centipawn Loss (ACPL)</strong> — the average eval drop per move compared to the best available move. We fitted the regression{' '}
-          <em className="text-white">ELO = a − b × ln(ACPL)</em> on{' '}
-          <strong className="text-white">200,000 Lichess games</strong> with known player ratings and Stockfish evaluations. The model demonstrates that playing strength is quantifiable: <span style={{ color: '#34d399', fontWeight: 700 }}>higher-rated players lose less eval per move</span> on average. Game result against a known-strength bot also factors in: <em className="text-white">beating the bot</em> sets a floor for your estimate, while <em className="text-white">losing</em> caps it.
+          The rating signal uses <strong className="text-white">Average Centipawn Loss (ACPL)</strong> — the average eval drop per move compared to the best available move. The population-level regression captures a real pattern: <span style={{ color: '#34d399', fontWeight: 700 }}>stronger players</span> usually lose fewer centipawns per move. But one short game against a lightweight bot is <em className="text-white">too noisy</em> to identify a real rating, so the output is best read as an <span style={{ color: '#34d399', fontWeight: 700 }}>educational visualization</span> of move quality rather than an actual ELO prediction.
         </>}
       >
         <GuessELO modelData={data.eloModel} />

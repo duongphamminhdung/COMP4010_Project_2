@@ -5,9 +5,6 @@
 \usepackage[top=18mm, left=14mm, right=14mm, bottom=22mm]{geometry}
 \usepackage{enumitem}
 \usepackage{amsmath,amssymb}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
-\usepackage{xcolor}
 \usepackage{tcolorbox}
 \usepackage{url}
 \usepackage{hyperref}
@@ -16,79 +13,19 @@
 \usepackage{multicol}
 \usepackage{color,soul}
 \usepackage{longtable,array}
-\usepackage{listings}
 \usepackage{float}
 \usepackage[utf8]{vietnam}
-\usepackage{graphicx}
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
-    filecolor=magenta,      
+    filecolor=magenta,
     urlcolor=blue,
-    pdfpagemode=FullScreen,
 }
-% Define code listing settings
-\lstdefinestyle{mystyle}{
-    basicstyle=\ttfamily,
-    backgroundcolor=\color{gray!10},
-    frame=lines,
-    breaklines=true,
-    captionpos=b,
-    numbers=left,
-    numberstyle=\tiny,
-    language=Python,
-    showstringspaces=false,
-}
-
-\lstset{style=mystyle}
-
-% Default fixed font does not support bold face
-\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
-\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
-
-% Custom colors
-\usepackage{color}
-\definecolor{deepblue}{rgb}{0,0,0.5}
-\definecolor{deepred}{rgb}{0.6,0,0}
-\definecolor{deepgreen}{rgb}{0,0.5,0}
-\definecolor{deeporange}{rgb}{0.9,0.5,0}
-
-% Python style for highlighting
-\newcommand\pythonstyle{\lstset{
-    language=Python,
-    basicstyle=\ttm,
-    morekeywords={self},              % Add keywords here
-    keywordstyle=\ttb\color{deepblue},
-    emph={MyClass,__init__},          % Custom highlighting
-    emphstyle=\ttb\color{deepred},    % Custom highlighting style
-    stringstyle=\color{deeporange},
-    commentstyle=\color{deepgreen},
-    frame=tb,                         % Any extra options here
-    showstringspaces=false
-}}
-
-
-% Python environment
-\lstnewenvironment{python}[1][]
-{
-\pythonstyle
-\lstset{#1}
-}
-{}
-
-% Python for external files
-\newcommand\pythonexternal[2][]{{
-\pythonstyle
-\lstinputlisting[#1]{#2}}}
-
-% Python for inline
-\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
 
 %%%% Headers %%%%
 \pagestyle{fancy}
 \headheight 57.60004pt
-%\headsep 50pt
-\fancyhead[L]{\includegraphics[height=4.5\baselineskip]{\logo}}
+\fancyhead[L]{\includegraphics[height=4.5\baselineskip]{VinUni_logo.png}}
 \fancyhead[R]{\\College of Engineering and Computer Science\\
 Data Visualization
 \\ May, 2026
@@ -99,63 +36,39 @@ Data Visualization
 \fancyfoot[C]{}
 \fancyfoot[R]{\thepage/\pageref{LastPage}}
 
-\newcommand{\coursename}{Artificial Intelligence}
-\newcommand{\logo}{vinuni_logo.png}
-
-\newcommand{\setLabFooter}[1]{%
-  \fancyfoot[C]{Lab #1}
-  \renewcommand{\headrulewidth}{0pt} %remove line
-}
-
-\newcommand{\resetFooter}{%
-  \fancyfoot[C]{}
-  \renewcommand{\headrulewidth}{0.4pt} %add line back
-}
-
 \setlength{\parindent}{0pt}
 \begin{document}
 
 \begin{titlepage}
 
-    % Author
-\begin{minipage}{10cm}
-% \begin{tcolorbox} 
-% [colback = white]
-% {
-
-
-\end{minipage} 
-    % \vspace{1.5cm}
     \centering
     \includegraphics[width=0.4\textwidth]{VinUni_logo.png}
     \vspace{1cm}
 
-    % \vfill
     {\Large COMP4010 - Data Visualization \par}
     \vspace{0.5cm}
 
-    % \textbf{Department:}\\
     \textbf{College of Engineering and Computer Sciences \\ VinUniversity} \par
-    
+
     \vspace{1cm}
     \textbf{Duong Pham Minh Dung - V202401386}
-    
+
     \textbf{Chau Hoang Phuc - V202200772}
-    
+
     \textbf{Vu Duc Duy - V202200782}
 
     \textbf{Trinh Tuan Hung - V202401654}
-    
+
     \vspace{1cm}
     \textbf{May, 2026}
-    
+
 \end{titlepage}
 \newpage
 \section*{1. Introduction}
 
 Chess has a clear performance metric (ELO rating~\hyperlink{ref3}{[3]}), a well-defined state space, and a definitive AI disruption timeline: AlphaZero's self-taught mastery in 2017~\hyperlink{ref1}{[1]}, followed by Stockfish NNUE in 2020~\hyperlink{ref2}{[2]}. AlphaZero's unconventional style --- favoring positional advantage over material, re-evaluating centuries of opening theory --- sparked a revolution across all skill levels.
 
-This project asks whether observing superior AI play actually changed human behavior. Did players reduce blunders using post-game engine analysis? Did opening trends shift toward engine-preferred lines? Did game duration change? Can we quantify skill from move quality alone? We collected 200,000 games from the Lichess open database~\hyperlink{ref4}{[4]} and designed seven interactive sections, each targeting one facet of the AI--human chess relationship. Six sections explore opening trends, blunder rates, game length, and piece placement through interactive data visualizations. The seventh integrates supervised regression (ELO prediction from ACPL), connecting data analysis directly to the user's own play.
+This project asks whether observing superior AI play actually changed human behavior. Did players reduce blunders using post-game engine analysis? Did opening trends shift toward engine-preferred lines? Did game duration change? Can we quantify skill signals from move quality alone? We collected 200,000 games from the Lichess open database~\hyperlink{ref4}{[4]} and designed seven interactive sections, each targeting one facet of the AI--human chess relationship. Six sections explore opening trends, blunder rates, game length, and piece placement through interactive data visualizations. The seventh integrates supervised regression as a single-game rating-signal demo from ACPL, connecting data analysis directly to the user's own play without claiming to measure true rating.
 
 
 \section*{2. Dataset and Preprocessing}
@@ -164,7 +77,26 @@ This project asks whether observing superior AI play actually changed human beha
 The Lichess open database~\hyperlink{ref4}{[4]} contains billions of rated games in PGN format with player ELOs, move sequences, engine evaluations, and opening classifications.
 
 \textbf{Sampling.}
-We sample $\sim$200k games across four time periods (pre-AI 2015--16, early post-AlphaZero 2018--19, NNUE era 2021--22, modern 2024--25) and six ELO brackets (0--1000 through 2600+), yielding $\sim$8,333 games per cell. Only games with engine evaluation annotations are selected.
+We sample $\sim$200k games across four time periods and six ELO brackets (Table~1), yielding $\sim$8,333 games per cell. Only games with engine evaluation annotations are selected.
+
+\begin{table}[h]
+\centering
+\caption{Sampling design: periods and ELO brackets}
+\label{tab:sampling}
+\begin{tabular}{llll}
+\hline
+\textbf{Period} & \textbf{Years} & \textbf{Key event} & \textbf{Games} \\
+\hline
+Pre-AI            & 2015--16 & Baseline            & $\sim$50k \\
+Early Post-AI     & 2018--19 & AlphaZero (2017)    & $\sim$50k \\
+NNUE Era          & 2021--22 & Stockfish NNUE (2020) & $\sim$50k \\
+Modern            & 2024--25 & Current play        & $\sim$50k \\
+\hline
+\end{tabular}
+
+\vspace{0.3em}
+\small ELO brackets: 0--1000, 1000--1400, 1400--1800, 1800--2200, 2200--2600, 2600+.
+\end{table}
 
 \textbf{Pipeline.}
 Raw zstd-compressed PGN files (10--30 GB/month) are processed in two phases:
@@ -174,7 +106,7 @@ Raw zstd-compressed PGN files (10--30 GB/month) are processed in two phases:
 \end{enumerate}
 
 \textbf{Output.}
-Five raw CSVs (game metadata, moves, blunders, piece-squares, material curves) are aggregated into frontend-ready CSVs and JSONs ($<$3 MB total).
+Five raw CSVs (game metadata, moves, blunders, piece-squares, sacrifices) are aggregated into frontend-ready CSVs and JSONs ($<$3 MB total). Material and sacrifice data are loaded for the Shiny edition and remain available for future frontend sections.
 
 
 \section*{3. Visualization Design}
@@ -182,34 +114,32 @@ Five raw CSVs (game metadata, moves, blunders, piece-squares, material curves) a
 \textbf{Design system.}
 The frontend uses React (Vite) with Tailwind CSS, D3.js~\hyperlink{ref6}{[6]} for custom SVG visualizations (sunburst, heatmaps, board overlays), Recharts for line charts, chess.js for move validation, and Framer Motion for animations. A dark theme with era-specific accent colors (blue, purple, yellow, green) provides consistent visual identity. Each section follows a shared layout: section header, visualization, three-column note cards, and a highlighted discussion box.
 
-To satisfy the native Python Shiny requirement, the repository also includes a second, locally runnable edition named \textit{Beyond the Engine: Human Play in the AI Era}. It preserves the same seven-section narrative and aggregated datasets while using idiomatic Shiny modules, cached process-level data loading, reactive calculations, shared era filtering, Plotly widgets, and \texttt{python-chess}. Both editions use the same dark-only chess-inspired palette and semantic era colors; React remains the static GitHub Pages deployment, while the Shiny edition is reproducible through a pinned Conda environment.
-
 We chose each visualization type to match the structure of its underlying data:
 
 \textbf{Section 1 --- Opening Tree.}
-Opening moves form a \emph{hierarchical} branching structure. A D3 sunburst partition chart naturally represents this hierarchy: arc width encodes move popularity, concentric rings encode depth (ply number), and color groups moves by first move. We chose a sunburst over a tree diagram because it fills the viewport efficiently and makes popularity comparisons immediate through arc area. A center chessboard updates on hover to show the resulting position, grounding the abstract arcs in concrete board states.
+Opening moves form a \emph{hierarchical} branching structure. A D3 sunburst partition chart naturally represents this hierarchy: arc width encodes move popularity, concentric rings encode depth (ply number), and color groups moves by first move. A sunburst fills the viewport more efficiently than a tree diagram and makes popularity comparisons immediate through arc area. The key insight this enables --- that post-AI trees are thinner at deeper levels --- would be invisible in a flat table of move counts.
 
 \textbf{Section 2 --- Opening Revolution.}
-Opening popularity over time is \emph{temporal} data with multiple categories. A multi-line chart lets users compare trends across openings simultaneously. Reference lines at 2017 (AlphaZero) and 2020 (NNUE) anchor the discussion to AI milestones, while ranking cards below show each opening's net change from baseline.
+Opening popularity over time is \emph{temporal} data with multiple categories. A multi-line chart lets users compare trends across openings simultaneously on shared axes, revealing that no single opening dominated or collapsed after AI --- the distribution became slightly more even, a nuance that separate per-opening bar charts would obscure. Reference lines at 2017 (AlphaZero) and 2020 (NNUE) anchor the discussion to AI milestones.
 
 \textbf{Section 3 --- Opening Simulator.}
-Static descriptions of openings (``Sicilian Defense: 1.e4 c5'') are opaque to casual players. An interactive board built with chess.js steps through eight preset openings with play/pause and a clickable move list, translating abstract names into concrete piece plans. This bridges the gap between the statistical trends in Sections 1--2 and the actual moves on the board.
+Static descriptions of openings (``Sicilian Defense: 1.e4 c5'') are opaque to casual players. An interactive board built with chess.js steps through eight preset openings with play/pause and a clickable move list, translating abstract names into concrete piece plans. Without this section, a reader could observe that the Queen's Gambit gained popularity without understanding \emph{why} --- that its piece plan is simple, system-like, and engine-friendly.
 
 \textbf{Section 4 --- Blunder Heatmap.}
-Blunder rates across six ELO brackets and four eras form a \emph{two-dimensional categorical} grid. A D3 heatmap encodes magnitude through color intensity, which communicates magnitude more immediately than bar heights. We chose a diverging scale (green $\to$ yellow $\to$ red) so that improvement (fewer blunders) reads as ``good'' at a glance. A side panel shows the pre-AI to modern change per bracket.
+Blunder rates across six ELO brackets and four eras form a \emph{two-dimensional categorical} grid. A D3 heatmap with a diverging scale (green $\to$ yellow $\to$ red) makes the project's strongest finding immediately visible as a green diagonal gradient --- that middle-rated players improved the most --- something a table of numbers would require careful scanning to notice.
 
 \textbf{Section 5 --- Game Length Distribution.}
-Game duration is a \emph{continuous distribution}, so normalized area curves show both the overall shape and local peaks more effectively than summary bars. Each curve reports the percentage of games ending at a given ply within one era, avoiding distortion from unequal sample sizes. Median cards summarize the central tendency, while reference lines at ply 80 and 120 mark moves 40 and 60, where time-control boundaries can create visible spikes.
+Game duration is a \emph{continuous distribution}, so normalized area curves show both the overall shape and local peaks more effectively than summary bars. The curves reveal that AI did not fundamentally reshape game duration; instead, the most striking pattern is comb-like peaks at time-control boundaries (ply 81, 120, 160), which a single median or mean would completely erase.
 
 \textbf{Section 6 --- Piece-Square Maps.}
-Piece placement data is inherently \emph{spatial}: the only natural canvas is the chess board itself. We overlay destination-square frequencies directly onto an 8$\times$8 board grid using a green gradient, preserving spatial meaning that a bar chart would destroy. A selector switches between four pieces (Knight, Bishop, Rook, Queen); each view shows a KPI sidebar (top square, center-control \%, top-eight hotspot concentration) and a contextual explanation panel.
+Piece placement data is inherently \emph{spatial}: the only natural canvas is the chess board itself. We overlay destination-square frequencies directly onto an 8$\times$8 board grid using a green gradient, preserving spatial meaning that a bar chart would destroy. Readers immediately recognize that knights cluster on c3/f3/c6/f6 --- natural development squares --- and that these hot spots tighten in later eras, revealing that players converge on engine-approved placement.
 
-\textbf{Section 7 --- ELO Prediction.}
-This section integrates machine learning into the visualization. Users play White against an in-browser minimax bot ($\sim$1300 ELO) with alpha-beta pruning (depth 4), material evaluation (P=1, N=B=3, R=5, Q=9) and piece-square tables. After each move the board is re-evaluated; the difference between the best available evaluation and the post-move evaluation is recorded as the centipawn loss for that move. Once the user has played $\geq$20 moves, the mean centipawn loss (ACPL) is fed into a regression model fitted on our data:
+\textbf{Section 7 --- Rating Signal Demo.}
+This section integrates machine learning into the visualization. Users play White against a lightweight $\sim$1300 ELO bot. After each user move the board is re-evaluated; the difference between the best available evaluation and the post-move evaluation is recorded as the centipawn loss for that move. Once the user has played $\geq$20 moves, the mean centipawn loss (ACPL) is fed into a regression model fitted on our data:
 \[
   \text{ELO} = 9637 - 1708 \cdot \ln(\text{ACPL}_{\text{cp}})
 \]
-The point estimate is then converted to a probability distribution over six ELO brackets via a Gaussian kernel, displayed as horizontal probability bars. This turns the user from a passive viewer into an active participant in the analysis. Details of the ML pipeline are in Section 5.
+The point estimate is then converted to an illustrative distribution over six ELO brackets via a Gaussian kernel, displayed as horizontal bars. Because one short game against a simple bot is extremely noisy, the interface frames the output as a rating signal rather than a true ELO prediction. Presenting probabilities rather than a single number teaches the reader that single-game prediction is inherently uncertain --- a point estimate would falsely imply precision. Details of the ML pipeline are in Section 5.
 
 
 \section*{4. Interaction Design}
@@ -219,14 +149,16 @@ The page opens with a full-screen hero showing floating chess-piece silhouettes 
 Interactivity is not decorative --- each interaction exists because static charts would obscure the insight:
 
 \begin{itemize}[nosep]
-  \item \textbf{Period toggle \& hover path} (Opening Tree): Static trees for four eras side-by-side would be unreadable. Letting users toggle eras makes the comparison voluntary and focused. Hovering highlights the root-to-node path and updates the center board, connecting the abstract arc to a concrete position.
-  \item \textbf{Play controls} (Opening Simulator): Stepping through moves at the user's pace replaces a static diagram with a narrative. Auto-play (850 ms interval) and a clickable move list give both passive and active exploration modes.
-  \item \textbf{Normalized hover comparison} (Game Length): Era curves are normalized independently so their shapes can be compared directly. Hover tooltips expose exact percentages at each ply, while median cards provide a stable summary that is less sensitive to local spikes.
-  \item \textbf{Piece selector} (Piece-Square Maps): Four overlapping piece heatmaps on one board would be illegible. A selector lets users compare pieces on demand while keeping each view clean.
-  \item \textbf{Live game + prediction} (ELO Prediction): Users play against a bot with live stats (accuracy, blunder rate, capture \%, check \%, development). After 20 moves, the regression model predicts ELO bracket probabilities. This turns the ``quantify skill from move quality'' research question into a first-person experience.
+  \item \textbf{Period toggle \& hover path} (Opening Tree): Letting users toggle eras makes the comparison voluntary and focused. Hovering highlights the root-to-node path and updates the center board, so the reader can trace exactly which moves account for a wide branch.
+  \item \textbf{Play controls} (Opening Simulator): Auto-play (850 ms interval) and a clickable move list give both passive and active exploration modes. Without play controls, the connection between an opening name and its concrete piece plan would remain abstract text.
+  \item \textbf{Normalized hover comparison} (Game Length): Era curves are normalized independently so their shapes can be compared directly despite unequal sample sizes. Hover tooltips expose exact percentages at each ply, letting the reader confirm that the peaks at ply 81 and 120 are real spikes and not artifacts of scaling.
+  \item \textbf{Piece selector} (Piece-Square Maps): A selector lets users compare pieces on demand while keeping each view clean. Switching between knight and bishop reveals that their hot spots are complementary (knight on c3/f3, bishop on c4/f4), a spatial relationship that separate charts would hide.
+  \item \textbf{Live game + rating signal} (Rating Signal Demo): Users play against a bot with live stats (accuracy, blunder rate, capture \%, check \%, development). Watching one's own accuracy drop after a blunder creates an intuitive understanding of ACPL that no static explanation could achieve.
 \end{itemize}
 
 All animations use GPU-accelerated CSS transforms and IntersectionObserver scroll-reveal. The layout is fully responsive with a mobile hamburger menu.
+
+A native Python Shiny edition is also included in the repository for local use. It preserves the same seven-section narrative and aggregated datasets with Plotly widgets, reactive calculations, and a pinned Conda environment.
 
 
 \section*{5. Methods}
@@ -241,12 +173,12 @@ Move-level data is aggregated by period (four eras around AI milestones) and ELO
 Opening trees are pruned at build time: top 5 children at depths 0--2, top 3 + ``Other'' at depths 3--4, top 2 at depth 5+. This reduces JSON files from 6--7 MB to $\sim$700 KB each.
 
 
-\subsection*{5.1 ELO Prediction Pipeline}
+\subsection*{5.1 Rating Signal Pipeline}
 
-The ELO prediction section combines a deterministic chess bot, a regression model trained on historical data, and a probabilistic output layer. We describe each stage below.
+The rating-signal section combines a chess bot, a regression model trained on historical data, and a probabilistic output layer. We describe each stage below.
 
 \textbf{Bot evaluation.}
-The in-browser opponent uses minimax search with alpha-beta pruning at depth 4. Positions are evaluated by a hand-crafted function: material values (P=1, N=B=3, R=5, Q=9, K=100) plus piece-square tables (64-element arrays assigning positional bonuses, e.g.\ center pawns +50, edge knights $-$40). The bot selects stochastically from its top 3 moves with exponentially decaying weights ($w_i \propto e^{-1.2i}$) to simulate $\sim$1300 ELO play.
+The in-browser opponent queries the Lichess cloud evaluation API, which returns Stockfish principal variations at depth 12 for a given FEN position. To simulate $\sim$1300 ELO play, the bot requests up to 4 PVs, skips the top-ranked move (too strong for amateur-level play), and selects uniformly from the remaining PVs. If the API is unavailable (offline use, rate limiting), a local minimax search with alpha-beta pruning at depth 2 and a hand-crafted evaluation function (material values: P=1, N=B=3, R=5, Q=9, K=100; plus piece-square tables) serves as fallback. The API also provides the Stockfish position eval, which is used to compute ACPL during play so that the evaluation quality matches the training annotations.
 
 \textbf{Feature extraction during play.}
 After each user move, the board is evaluated before and after the move. The centipawn loss is:
@@ -279,17 +211,17 @@ Training data was prepared by aggregating the $\sim$200k games to the player-gam
 \end{enumerate}
 
 \textbf{Probabilistic output.}
-The point estimate $\hat{E}$ is converted to bracket probabilities via a Gaussian kernel:
+The model score $\hat{E}$ is converted to illustrative bracket signal bars via a Gaussian kernel:
 \[
   P(\text{bracket}_j) = \frac{\exp\!\bigl(-\frac{(\hat{E} - c_j)^2}{2\sigma^2}\bigr)}{\sum_{k} \exp\!\bigl(-\frac{(\hat{E} - c_k)^2}{2\sigma^2}\bigr)}, \quad \sigma = 300
 \]
-where $c_j$ are bracket centers (500, 1200, 1600, 2000, 2400, 2800). This soft assignment avoids hard classification boundaries and communicates confidence: a well-played game clusters probability in one bracket, while inconsistent play spreads it across several.
+where $c_j$ are bracket centers (500, 1200, 1600, 2000, 2400, 2800). This soft assignment avoids hard classification boundaries, but it should not be read as calibrated confidence in a real rating. It visualizes where one game's ACPL-like signal falls relative to population-level bracket centers.
 
 \textbf{Game-result prior.}
 Defeating the $\sim$1300 bot sets a floor: $\hat{E} \leftarrow \max(\hat{E}, 1400)$. Losing caps the estimate: $\hat{E} \leftarrow \min(\hat{E}, 1500)$. This incorporates the intuition that a player who wins against a known-strength opponent is unlikely to be rated below them.
 
 \textbf{How ML contributes to the analysis.}
-The prediction section serves three roles. First, it \emph{validates} the dataset: the $R^2 = 0.31$ of the multi-feature model confirms that move quality does carry real signal about player strength, even if single-game noise limits precision. Second, it \emph{demonstrates} the ACPL--ELO relationship interactively: users experience the correlation firsthand rather than trusting a static chart. Third, it \emph{communicates uncertainty honestly}: by presenting bracket probabilities rather than a single number, the visualization teaches users that prediction from one game is inherently imprecise --- an insight that a point estimate would hide.
+The rating-signal section serves three roles. First, it \emph{validates} the dataset: the $R^2 = 0.31$ of the multi-feature model confirms that move quality does carry real signal about player strength, even if single-game noise limits precision. Second, it \emph{demonstrates} the ACPL--ELO relationship interactively: users experience the correlation firsthand rather than trusting a static chart. Third, it \emph{communicates uncertainty honestly}: by presenting bracket-like signal bars and an explicit caveat, the visualization teaches users that prediction from one game is inherently imprecise.
 
 
 \section*{6. Key Findings}
@@ -301,11 +233,11 @@ The prediction section serves three roles. First, it \emph{validates} the datase
 
   \item \textbf{Blunders declined across every skill level.} Improvement is largest in 1400--2200 brackets, where players benefit most from post-game analysis. The 2600+ bracket shows the smallest gain (elite players were already accurate).
 
-  \item \textbf{Games became slightly shorter, not fundamentally different.} Median length falls from 65 ply in the Pre-AI era to 62 in the NNUE era, then settles at 63 in the Modern era. Mean length declines from 70.7 to 68.7 ply between Pre-AI and Modern. The substantial overlap between distributions indicates a modest shift rather than a structural change.
+  \item \textbf{Game length is determined by time controls, not AI exposure.} The distribution shows a distinctive comb pattern with peaks aligned to classical time-control boundaries (ply 81 = Black's 40th move, ply 120 = White's 60th move), suggesting players push to meet controls and then collapse from accumulated positional damage or timeout. AI did not fundamentally reshape game duration.
 
   \item \textbf{Piece placement is geometrically determined.} Knights cluster on c3/f3/c6/f6; bishops on c4/f4 and fianchetto squares. These patterns are era-stable because board geometry creates natural optimal squares. What changed is concentration: hot spots are tighter in later eras.
 
-  \item \textbf{Playing strength is partially quantifiable from move quality.} The logarithmic ACPL--ELO relationship holds at the population level: higher-rated players consistently lose fewer centipawns per move. The multi-feature model ($R^2 = 0.31$) confirms this with four behavioral features. However, single-game ACPL is too noisy for precise individual prediction (ACPL-only model $R^2 < 0$ on raw data). The interactive prediction section demonstrates this realistically by presenting bracket probabilities rather than point estimates.
+  \item \textbf{Playing strength is partially quantifiable from move quality.} The logarithmic ACPL--ELO relationship holds at the population level: higher-rated players consistently lose fewer centipawns per move. The multi-feature model ($R^2 = 0.31$) confirms this with four behavioral features. However, single-game ACPL is too noisy for precise individual prediction (ACPL-only model $R^2 < 0$ on raw data). The interactive section therefore presents a rating signal demo rather than an actual ELO prediction.
 \end{enumerate}
 
 Overall, AI changed \emph{how} players learn (fewer blunders, more efficient placement, faster convergence on strong lines) without altering the geometry of the game.
@@ -320,13 +252,13 @@ The raw PGN files are 10--30 GB per month; streaming with early rejection (skip 
 Choosing the right visualization for each data type required iteration. Early prototypes used tree diagrams for openings (unreadable at scale), bar charts for blunder rates (hard to compare across cells), and a single line chart for game length (time-control spikes were invisible without zoom). The current sunburst/heatmap designs emerged from testing each against the question it needed to answer.
 
 \textbf{ML limitations.}
-The ACPL-only model's negative $R^2$ on raw data highlights that a single game's ACPL is an extremely noisy proxy for long-term rating; the multi-feature model ($R^2 = 0.31$) is better but still far from precise. The bot has fixed strength ($\sim$1300), so the game-result prior is uninformative for players rated far above or below that level. The piece-square tables and depth-4 search are a coarse approximation of true engine evaluation, which may distort ACPL measurements relative to the Stockfish-annotated training data.
+The ACPL-only model's negative $R^2$ on raw data highlights that a single game's ACPL is an extremely noisy proxy for long-term rating; the multi-feature model ($R^2 = 0.31$) is better but still far from precise. The bot has fixed strength ($\sim$1300), so the game-result prior is uninformative for players rated far above or below that level. The local fallback evaluation uses piece-square tables and depth-2 search, which is a coarse approximation of true engine evaluation; however, the primary API path uses Stockfish depth 12, matching the evaluation quality of the training annotations.
 
 \textbf{General limitations.}
 Lichess ELO is not directly comparable to FIDE~\hyperlink{ref9}{[9]} and has experienced inflation. Only games with engine evaluations are included (selection bias toward engaged players). Game-length differences may reflect changes in time-control mix, resignation habits, or online playing culture rather than AI exposure alone. This is observational; we cannot prove causation --- other factors (the pandemic-era chess boom~\hyperlink{ref10}{[10]}, streaming culture) likely contribute.
 
 \textbf{Future work.}
-Move-by-move blunder timelines (opening vs.\ middlegame vs.\ endgame phases), clock-time analysis for blitz/bullet games, text search in the sunburst chart, per-opening blunder rates (combining opening and blunder datasets), deploying the multi-feature model in the frontend for more accurate predictions, and lazy-loading of opening tree JSONs for faster page load.
+Move-by-move blunder timelines (opening vs.\ middlegame vs.\ endgame phases), clock-time analysis for blitz/bullet games, text search in the sunburst chart, per-opening blunder rates (combining opening and blunder datasets), using the multi-feature model to make the rating-signal demo less noisy while keeping the caveat explicit, and lazy-loading of opening tree JSONs for faster page load.
 
 
 \section*{References}

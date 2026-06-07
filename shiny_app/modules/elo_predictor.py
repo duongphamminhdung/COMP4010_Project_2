@@ -63,9 +63,9 @@ def elo_predictor_ui():
     return ui.TagList(
         section_intro(
             "07",
-            "Predictive analytics",
-            "Can We Guess Your ELO?",
-            "Play White against a lightweight chess bot and turn move quality into a rating estimate.",
+            "Rating-signal analytics",
+            "How Strong Did This Game Look?",
+            "Play White against a lightweight chess bot and turn one game's move quality into a rough rating signal.",
             [
                 (
                     "Play",
@@ -73,11 +73,11 @@ def elo_predictor_ui():
                 ),
                 (
                     "Model",
-                    "Average evaluation loss feeds the fitted logarithmic ACPL regression.",
+                    "Average evaluation loss feeds a noisy ACPL regression demo.",
                 ),
                 (
                     "Explore",
-                    f"After {MIN_MOVES} White moves, reveal the bracket probabilities.",
+                    f"After {MIN_MOVES} White moves, reveal an illustrative bracket signal.",
                 ),
             ],
         ),
@@ -96,9 +96,9 @@ def elo_predictor_ui():
             class_="elo-shell",
         ),
         insight_box(
-            "Move quality predicts a range, not an identity.",
-            "The model exposes a population-level relationship between ACPL and rating, "
-            "but one short game remains noisy. Bracket probabilities communicate that uncertainty.",
+            "This is not a real rating claim.",
+            "The model shows the population-level ACPL pattern, but a short game against a "
+            "lightweight bot is too noisy to measure a player's true rating.",
         ),
     )
 
@@ -342,12 +342,12 @@ def elo_predictor_server(
         if state.move_count < MIN_MOVES:
             return ui.p(
                 f"Play {remaining} more White move{'s' if remaining != 1 else ''} "
-                "to unlock the prediction.",
+                "to unlock the rating-signal demo.",
                 class_="prediction-hint",
             )
         return ui.input_action_button(
             session.ns("predict"),
-            "Update Prediction" if prediction_value.get() else "Predict My ELO",
+            "Update Signal" if prediction_value.get() else "Estimate Rating Signal",
             class_="control-button primary wide",
         )
 
@@ -382,12 +382,16 @@ def elo_predictor_server(
                 )
             )
         return ui.div(
-            ui.div("ELO prediction", class_="prediction-kicker"),
+            ui.div("Single-game rating signal", class_="prediction-kicker"),
             ui.div(f"{classes[best_index]}", class_="prediction-bracket"),
             ui.p(
-                f"Point estimate {estimated:.0f} · "
-                f"{probabilities[best_index] * 100:.0f}% bracket confidence"
+                f"Model score {estimated:.0f} · "
+                f"{probabilities[best_index] * 100:.0f}% of the illustrative signal"
             ),
             ui.div(*bars, class_="probability-list"),
+            ui.p(
+                "Treat this as a visualization of ACPL, not as your actual chess rating.",
+                class_="prediction-disclaimer",
+            ),
             class_="prediction-card",
         )

@@ -115,7 +115,7 @@ export async function loadPieceSquareData() {
 }
 
 // ============================================================
-// 7. ELO Prediction Model
+// 7. Rating Signal Model
 // ============================================================
 export async function loadELOModel() {
   try {

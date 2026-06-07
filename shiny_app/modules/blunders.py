@@ -31,7 +31,7 @@ def blunders_ui():
                     "Why",
                     "The grid makes cross-era and cross-skill comparisons immediate.",
                 ),
-                ("Explore", "Use the global era filter or focus on one rating group."),
+                ("Explore", "Use the section era filter or focus on one rating group."),
             ],
         ),
         chart_shell(

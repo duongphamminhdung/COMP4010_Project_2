@@ -21,7 +21,7 @@ Both editions present seven sections:
 4. Blunder Heatmap
 5. Game Length Distribution
 6. Piece-Square Maps
-7. Interactive ELO Predictor
+7. Single-Game Rating Signal
 
 ## Quick Start: Python Shiny
 
@@ -150,7 +150,7 @@ python notebooks/generate_frontend_data.py
 The repository uses focused, descriptive commits for features, design passes,
 data-pipeline changes, report corrections, and review fixes. Examples include:
 
-- `Add interactive ELO prediction section with ACPL regression model`
+- `Add interactive rating-signal section with ACPL regression model`
 - `Move opening tree pruning from frontend to build-time`
 - `Design polish: loading skeleton, active nav, hover states, visual texture`
 - `Code review fixes: extract constants, fix tooltip leak, reduce bot depth`

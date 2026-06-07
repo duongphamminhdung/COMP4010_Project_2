@@ -70,21 +70,54 @@ function minimax(chess, depth, maximizing, alpha, beta) {
   }
 }
 
-function getBotMove(chess) {
+async function getBotMove(chess) {
   const moves = chess.moves({ verbose: true });
-  if (!moves.length) return null;
+  if (!moves.length) return { move: null, evalCp: null };
 
+  try {
+    const fen = encodeURIComponent(chess.fen());
+    const resp = await fetch(
+      `https://lichess.org/api/cloud-eval?fen=${fen}&multiPv=${Math.min(moves.length, 4)}&depth=12`,
+      { signal: AbortSignal.timeout(3000) }
+    );
+    if (!resp.ok) throw new Error('API error');
+    const data = await resp.json();
+
+    // Position eval in centipawns (from White's perspective)
+    const evalCp = data.pvs?.[0]?.cp ?? null;
+
+    if (data.pvs?.length) {
+      const pvMoves = data.pvs
+        .map(pv => {
+          const san = pv.moves?.split(' ')[0];
+          return moves.find(m => m.san === san);
+        })
+        .filter(Boolean);
+
+      if (pvMoves.length >= 2) {
+        const pool = pvMoves.slice(1, 4);
+        return { move: pool[Math.floor(Math.random() * pool.length)], evalCp };
+      }
+    }
+
+    if (evalCp !== null) return { move: moves[0], evalCp };
+  } catch {
+    // Fallback: local depth-2 search
+  }
+
+  return { move: getBotMoveLocal(chess, moves), evalCp: null };
+}
+
+function getBotMoveLocal(chess, moves) {
   const scored = moves.map(m => {
     chess.move(m.san);
-    const s = minimax(chess, 4, true, -Infinity, Infinity);
+    const s = minimax(chess, 2, true, -Infinity, Infinity);
     chess.undo();
     return { move: m, score: s };
   });
 
-  // Bot is Black → lower score is better
   scored.sort((a, b) => a.score - b.score);
 
-  // Pick from top 3 with weighted randomness (~1300 feel)
   const topN = Math.min(scored.length, 3);
   const weights = Array.from({ length: topN }, (_, i) => Math.exp(-i * 1.2));
   const total = weights.reduce((a, b) => a + b, 0);
@@ -199,7 +232,7 @@ export default function GuessELO({ modelData }) {
     moveCount: 0,
     pieceTypes: new Set(),
     centerMoves: 0,
-    evalBefore: 0,
+    prevApiEvalCp: 0,
   });
 
   const features = useMemo(() => {
@@ -221,7 +254,7 @@ export default function GuessELO({ modelData }) {
     chess.reset();
     statsRef.current = {
       evalDrops: [], captures: 0, checks: 0, moveCount: 0,
-      pieceTypes: new Set(), centerMoves: 0, bestEvalThisTurn: computeBestEval(chess),
+      pieceTypes: new Set(), centerMoves: 0, prevApiEvalCp: 0,
     };
     setPosition(chess.fen());
     setSelectedSq(null);
@@ -249,15 +282,11 @@ export default function GuessELO({ modelData }) {
       try { move = chess.move({ from: selectedSq, to: sq, promotion: 'q' }); } catch { move = null; }
 
       if (move) {
-        const evalAfter = evaluateBoard(chess);
-        const drop = Math.max(0, statsRef.current.bestEvalThisTurn - evalAfter);
         const st = statsRef.current;
-        st.evalDrops.push(drop);
         if (move.captured) st.captures++;
         if (move.san.includes('+') || move.san.includes('#')) st.checks++;
         st.pieceTypes.add(move.piece);
         if (CENTER_SQUARES.has(move.to)) st.centerMoves++;
-        st.moveCount++;
 
         setSelectedSq(null);
         setLegalTargets([]);
@@ -277,13 +306,26 @@ export default function GuessELO({ modelData }) {
         }
 
         setBotThinking(true);
-        setTimeout(() => {
-          const botMove = getBotMove(chess);
+        setTimeout(async () => {
+          const { move: botMove, evalCp } = await getBotMove(chess);
+
+          // Compute eval drop for user's move using API centipawns
+          const st = statsRef.current;
+          if (evalCp !== null) {
+            const drop = Math.max(0, st.prevApiEvalCp - evalCp);
+            // Store as cp / eval_to_cp so model formula works
+            st.evalDrops.push(drop / 100);
+            st.prevApiEvalCp = evalCp;
+          } else {
+            // Fallback: use simple eval
+            const evalAfter = evaluateBoard(chess);
+            st.evalDrops.push(Math.max(0, (st.prevApiEvalCp / 100) - evalAfter));
+            st.prevApiEvalCp = evalAfter * 100;
+          }
+          st.moveCount++;
+
           if (botMove) {
             chess.move(botMove.san);
-            if (!chess.isGameOver()) {
-              statsRef.current.bestEvalThisTurn = computeBestEval(chess);
-            }
             setLastMove({ from: botMove.from, to: botMove.to });
             setPosition(chess.fen());
 
@@ -328,7 +370,7 @@ export default function GuessELO({ modelData }) {
       {status === 'waiting' && (
         <div className="text-center py-8">
           <p className="text-text-secondary mb-2 text-sm max-w-md mx-auto">
-            Play as White against our ~{BOT_ELO} ELO bot. After {MIN_MOVES} moves, the model predicts your rating bracket.
+            Play as White against our ~{BOT_ELO} ELO bot. After {MIN_MOVES} moves, the model shows a rough rating signal.
           </p>
           <p className="text-text-muted text-xs mb-5">
             Click a piece to select, then click a highlighted square to move.
@@ -456,15 +498,15 @@ export default function GuessELO({ modelData }) {
                     prediction ? 'bg-primary/60 text-dark' : 'bg-primary text-dark'
                   }`}
                 >
-                  {prediction ? `Update (${moveCount} moves)` : 'Predict My ELO'}
+                  {prediction ? `Update Signal (${moveCount} moves)` : 'Estimate Rating Signal'}
                 </button>
               )}
             </div>
 
-            {/* Prediction result */}
+            {/* Rating signal result */}
             {prediction && modelData && (
               <div className="glass-card rounded-lg p-4 space-y-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-primary">ELO Prediction</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-primary">Single-Game Rating Signal</h3>
                 <div className="space-y-1.5">
                   {modelData.classes.map((cls, i) => {
                     const prob = prediction[i];
@@ -487,8 +529,11 @@ export default function GuessELO({ modelData }) {
                 <p className="text-sm text-primary font-semibold">
                   {modelData.classes[prediction.indexOf(Math.max(...prediction))]}
                   <span className="text-text-muted font-normal ml-1">
-                    ({(Math.max(...prediction) * 100).toFixed(0)}% confidence)
+                    ({(Math.max(...prediction) * 100).toFixed(0)}% of the illustrative signal)
                   </span>
+                </p>
+                <p className="text-[11px] text-text-muted leading-relaxed border-t border-border pt-2">
+                  This is a noisy visualization of ACPL from one short game, not your actual chess rating.
                 </p>
               </div>
             )}
