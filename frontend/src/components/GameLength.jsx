@@ -111,8 +111,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function GameLength({ data }) {
-  const [visibleEras, setVisibleEras] = useState(new Set(PERIOD_ORDER));
-
+  const [selectedPeriod, setSelectedPeriod] = useState(null);
   const { chartData, summaries, multiEra } = useMemo(() => {
     const prepared = prepareGameLengthData(data);
     return {
@@ -123,14 +122,11 @@ export default function GameLength({ data }) {
 
   if (!chartData.length) return null;
 
-  function toggleEra(period) {
-    setVisibleEras((prev) => {
-      if (prev.size === 1 && prev.has(period)) return prev;
-      const next = new Set(prev);
-      next.has(period) ? next.delete(period) : next.add(period);
-      return next;
-    });
-  }
+  const handleCardClick = (period) => {
+    setSelectedPeriod((prev) => (prev === period ? null : period));
+  };
+
+  const visiblePeriods = selectedPeriod ? [selectedPeriod] : PERIOD_ORDER;
 
   return (
     <div>
@@ -145,18 +141,22 @@ export default function GameLength({ data }) {
             const baseMedian = summaries[0]?.medianPly ?? medianPly;
             const deltaMoves = (medianPly - baseMedian) / 2;
             const isBaseline = period === PERIOD_ORDER[0];
-            const active = visibleEras.has(period);
+            const isSelected = selectedPeriod === period;
+            const isDimmed = selectedPeriod !== null && !isSelected;
             return (
               <button
                 key={period}
                 type="button"
-                onClick={() => toggleEra(period)}
+                onClick={() => handleCardClick(period)}
+                aria-pressed={isSelected}
                 className="rounded-lg border border-l-4 px-3 py-2 text-left transition-all duration-200"
                 style={{
-                  borderColor: active ? PERIOD_COLORS[period] : '#2a3040',
+                  borderColor: isSelected ? PERIOD_COLORS[period] : '#2a3040',
                   borderLeftColor: PERIOD_COLORS[period],
-                  background: active ? `${PERIOD_COLORS[period]}18` : 'rgba(49,46,43,0.25)',
-                  opacity: active ? 1 : 0.45,
+                  background: isSelected
+                    ? `${PERIOD_COLORS[period]}18`
+                    : 'rgba(49,46,43,0.25)',
+                  opacity: isDimmed ? 0.35 : 1,
                 }}
               >
                 <div className="flex items-center gap-1.5">
@@ -225,7 +225,7 @@ export default function GameLength({ data }) {
           />
           {multiEra ? (
             <>
-              {PERIOD_ORDER.filter((p) => visibleEras.has(p)).map((p) => (
+              {visiblePeriods.map((p) => (
                 <Area
                   key={p}
                   type="monotone"

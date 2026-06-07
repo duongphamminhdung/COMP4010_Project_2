@@ -11,11 +11,10 @@ from shiny_app.theme import COLORS, apply_plotly_theme
 from shiny_app.ui_helpers import chart_shell, insight_box, metric_card, section_intro
 
 ROOT_COLORS = {
-    "e4":   "#a855f7",  # purple
-    "d4":   "#22c55e",  # green
-    "c4":   "#2dd4bf",  # teal/aqua
-    "Nf3":  "#38bdf8",  # sky blue
-    "g3":   "#f59e0b",  # amber
+    "e4":   "#81b64c",
+    "d4":   "#60a5fa",
+    "Nf3":  "#c084fc",
+    "c4":   "#fbbf24",
     "Other": "#64748b",
 }
 INNER_RADIUS = 1.45
