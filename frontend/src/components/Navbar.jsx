@@ -61,7 +61,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         <a href="#" className="flex items-center gap-2 text-white font-semibold text-lg font-serif group">
           <span className="text-2xl transition-transform duration-200 group-hover:scale-110">♞</span>
-          <span className="hidden sm:inline">Chess & AI</span>
+          <span className="hidden sm:inline">The Evolution of Human Thinking in the Age of AI</span>
         </a>
 
         {/* Desktop nav */}

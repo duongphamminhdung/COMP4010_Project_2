@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-2 text-text-secondary text-sm">
           <span className="text-2xl">♞</span>
-          <span>The Evolution of Human Chess Thought in the Age of AI</span>
+          <span>The Evolution of Human Thinking in the Age of AI</span>
         </div>
 
         <div className="flex flex-col items-center md:items-end gap-3">
