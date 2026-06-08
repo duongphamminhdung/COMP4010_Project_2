@@ -145,25 +145,6 @@ aggregated artifacts after obtaining the required raw data:
 python notebooks/generate_frontend_data.py
 ```
 
-## Development History
-
-The repository uses focused, descriptive commits for features, design passes,
-data-pipeline changes, report corrections, and review fixes. Examples include:
-
-- `Add interactive rating-signal section with ACPL regression model`
-- `Move opening tree pruning from frontend to build-time`
-- `Design polish: loading skeleton, active nav, hover states, visual texture`
-- `Code review fixes: extract constants, fix tooltip leak, reduce bot depth`
-
-Inspect the complete history with:
-
-```bash
-git log --oneline --decorate --graph
-```
-
-Contributors should keep future commits scoped to one logical change and use an
-imperative summary that explains the user-visible or technical outcome.
-
 ## Documentation
 
 - `main.tex` contains the research questions, visualization rationale,
@@ -174,3 +155,7 @@ imperative summary that explains the user-visible or technical outcome.
 ## Authors
 
 COMP4010 Data Visualization, VinUniversity
+Duong Pham Minh Dung - V202401386
+Chau Hoang Phuc - V202200772
+Vu Duc Duy - V202200782
+Trinh Tuan Hung - V202401654
