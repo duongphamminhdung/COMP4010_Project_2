@@ -624,6 +624,14 @@ select:focus-visible {
   background: var(--surface) !important;
 }
 
+.tooltip-inner {
+  max-width: 320px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
 .dropdown-item,
 .selectize-dropdown .option {
   color: var(--text-secondary) !important;

@@ -209,7 +209,7 @@ def opening_simulator_server(
     def _autoplay():
         if not playing.get():
             return
-        reactive.invalidate_later(0.85, session=session)
+        reactive.invalidate_later(1.15, session=session)
         opening = selected_opening()
         step = int(input.step())
         if step >= len(opening.moves):

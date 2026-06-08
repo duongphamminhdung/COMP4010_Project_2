@@ -126,7 +126,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function GameLength({ data }) {
-  const [selectedPeriod, setSelectedPeriod] = useState(null);
+  const [selectedPeriods, setSelectedPeriods] = useState(() => [...PERIOD_ORDER]);
   const { chartData, summaries, multiEra, yMax } = useMemo(() => {
     const prepared = prepareGameLengthData(data);
     return {
@@ -138,16 +138,26 @@ export default function GameLength({ data }) {
   if (!chartData.length) return null;
 
   const handleCardClick = (period) => {
-    setSelectedPeriod((prev) => (prev === period ? null : period));
+    setSelectedPeriods((previous) => {
+      if (previous.includes(period)) {
+        return previous.length === 1
+          ? previous
+          : previous.filter((selected) => selected !== period);
+      }
+      return PERIOD_ORDER.filter(
+        (candidate) => previous.includes(candidate) || candidate === period
+      );
+    });
   };
 
-  const visiblePeriods = selectedPeriod ? [selectedPeriod] : PERIOD_ORDER;
+  const visiblePeriods = selectedPeriods;
 
   return (
     <div>
       <p className="text-sm text-text-secondary mb-4">
         Percentage of games ending at each length, normalized within each era. This makes
-        distribution shifts comparable even when sample sizes differ.
+        distribution shifts comparable even when sample sizes differ. Select one or more
+        era cards to control the visible lines.
       </p>
 
       {summaries.length > 0 && (
@@ -156,8 +166,7 @@ export default function GameLength({ data }) {
             const baseMedian = summaries[0]?.medianPly ?? medianPly;
             const deltaMoves = (medianPly - baseMedian) / 2;
             const isBaseline = period === PERIOD_ORDER[0];
-            const isSelected = selectedPeriod === period;
-            const isDimmed = selectedPeriod !== null && !isSelected;
+            const isSelected = selectedPeriods.includes(period);
             return (
               <button
                 key={period}
@@ -171,7 +180,7 @@ export default function GameLength({ data }) {
                   background: isSelected
                     ? `${PERIOD_COLORS[period]}18`
                     : 'rgba(49,46,43,0.25)',
-                  opacity: isDimmed ? 0.35 : 1,
+                  opacity: isSelected ? 1 : 0.38,
                 }}
               >
                 <div className="flex items-center gap-1.5">

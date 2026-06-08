@@ -66,9 +66,14 @@ def apply_plotly_theme(
         margin=dict(margin or {"l": 52, "r": 22, "t": 30, "b": 48}),
         font={"family": "DM Sans, system-ui, sans-serif", "color": COLORS["text"]},
         hoverlabel={
-            "bgcolor": COLORS["card"],
-            "bordercolor": COLORS["border"],
-            "font": {"family": "DM Sans, system-ui, sans-serif"},
+            "bgcolor": "#171717",
+            "bordercolor": "#737373",
+            "font": {
+                "family": "DM Sans, system-ui, sans-serif",
+                "color": "#FFFFFF",
+                "size": 13,
+            },
+            "align": "left",
         },
         legend={"font": {"color": COLORS["text_secondary"]}},
     )
