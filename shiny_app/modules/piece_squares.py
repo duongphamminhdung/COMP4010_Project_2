@@ -72,7 +72,7 @@ def piece_squares_ui():
             ),
             ui.layout_columns(
                 ui.div(
-                    output_widget("board", height="560px"),
+                    output_widget("board", height="600px"),
                     ui.div(
                         ui.span("Less"),
                         ui.span(class_="piece-heat-gradient"),
@@ -82,7 +82,7 @@ def piece_squares_ui():
                     class_="piece-board-panel",
                 ),
                 ui.output_ui("stats"),
-                col_widths=(8, 4),
+                col_widths=(7, 5),
             ),
         ),
         insight_box(
@@ -216,6 +216,9 @@ def piece_squares_server(
         )
         apply_plotly_theme(fig, margin={"l": 44, "r": 30, "t": 18, "b": 38})
         fig.update_layout(
+            width=560,
+            height=560,
+            autosize=False,
             shapes=shapes,
             xaxis={
                 "range": [0.5, 8.5],
@@ -300,4 +303,5 @@ def piece_squares_server(
                 ),
                 class_="explanation-card",
             ),
+            class_="piece-stats-panel",
         )

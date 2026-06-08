@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import ChessBoard from './ChessBoard';
 
-const PIECE_BOARD_SIZE = 480;
+const PIECE_BOARD_SIZE = 540;
 
 const PIECE_OPTIONS = [
   { key: 'N', label: 'Knight', symbol: '♞' },
@@ -126,20 +126,24 @@ export default function PieceSquareMap({ data }) {
         </p>
       ) : (
         <div
-          className="w-full flex flex-col lg:flex-row gap-4 items-stretch"
+          className="w-full grid gap-4 items-stretch lg:grid-cols-[560px_10rem_minmax(16rem,1fr)]"
           style={{ minHeight: 0 }}
         >
           {/* Column 1: heatmap (largest) */}
           <div
-            className="flex-1 min-w-0 flex items-center justify-center rounded-lg border border-border p-2 lg:p-3"
-            style={{ background: 'rgba(49,46,43,0.25)', transition: 'opacity 180ms ease', opacity: boardOpacity }}
+            className="min-w-0 flex items-center justify-center rounded-lg border border-border p-2 lg:p-3"
+            style={{
+              background: 'rgba(49,46,43,0.25)',
+              transition: 'opacity 180ms ease',
+              opacity: boardOpacity,
+            }}
           >
             <ChessBoard data={boardData} valueSuffix="%" fixedSize={PIECE_BOARD_SIZE} />
           </div>
 
           {/* Column 2: KPI */}
           <div
-            className="w-full lg:w-52 shrink-0 flex flex-col rounded-lg border border-border p-4 gap-3"
+            className="w-full flex flex-col rounded-lg border border-border p-3 gap-2.5"
             style={{ background: 'rgba(49,46,43,0.4)' }}
           >
             <p className="text-xs font-semibold text-text-secondary uppercase tracking-widest leading-tight">
@@ -147,37 +151,37 @@ export default function PieceSquareMap({ data }) {
             </p>
 
             {stats?.hottest && (
-              <div className="rounded-md px-3 py-3 border border-border"
+              <div className="rounded-md px-2.5 py-2.5 border border-border"
                 style={{ background: 'rgba(26,26,26,0.5)' }}>
                 <div className="text-xs text-text-muted mb-1">Top square</div>
-                <div className="text-2xl font-bold text-white leading-none">{stats.hottest.square}</div>
-                <div className="text-lg font-bold text-primary mt-0.5">{stats.hottest.count.toFixed(1)}%</div>
+                <div className="text-xl font-bold text-white leading-none">{stats.hottest.square}</div>
+                <div className="text-base font-bold text-primary mt-0.5">{stats.hottest.count.toFixed(1)}%</div>
                 <div className="text-xs text-text-muted mt-1">of all placements</div>
               </div>
             )}
 
             {stats && (
-              <div className="rounded-md px-3 py-3 border border-border"
+              <div className="rounded-md px-2.5 py-2.5 border border-border"
                 style={{ background: 'rgba(26,26,26,0.5)' }}>
                 <div className="text-xs text-text-muted mb-1">Center control</div>
-                <div className="text-2xl font-bold text-primary leading-none">{stats.centerPct.toFixed(1)}%</div>
+                <div className="text-xl font-bold text-primary leading-none">{stats.centerPct.toFixed(1)}%</div>
                 <div className="text-xs text-text-muted mt-1">of moves in c3–f6 zone</div>
               </div>
             )}
 
             {stats && (
-              <div className="rounded-md px-3 py-3 border border-border"
+              <div className="rounded-md px-2.5 py-2.5 border border-border"
                 style={{ background: 'rgba(26,26,26,0.5)' }}>
                 <div className="text-xs text-text-muted mb-1">Squares used</div>
-                <div className="text-2xl font-bold text-white leading-none">
+                <div className="text-xl font-bold text-white leading-none">
                   {stats.activeSquares}
-                  <span className="text-base text-text-muted font-normal"> / 64</span>
+                  <span className="text-sm text-text-muted font-normal"> / 64</span>
                 </div>
               </div>
             )}
 
             {stats?.top3.length > 0 && (
-              <div className="rounded-md border border-border px-3 py-3 flex flex-col gap-2"
+              <div className="rounded-md border border-border px-2.5 py-2.5 flex flex-col gap-1.5"
                 style={{ background: 'rgba(26,26,26,0.5)' }}>
                 <div className="text-xs text-text-muted">Top 3 squares</div>
                 {stats.top3.map((row, i) => (
@@ -192,7 +196,7 @@ export default function PieceSquareMap({ data }) {
 
           {/* Column 3: explanation */}
           <div
-            className="w-full lg:flex-1 lg:min-w-[11rem] min-h-0 rounded-lg border p-4 flex flex-col justify-between"
+            className="w-full min-h-0 rounded-lg border p-4 flex flex-col justify-between"
             style={{ background: 'rgba(129,182,76,0.03)', borderColor: 'rgba(129,182,76,0.1)' }}
           >
             <div className="flex flex-col gap-3 text-sm text-text-secondary leading-relaxed">
