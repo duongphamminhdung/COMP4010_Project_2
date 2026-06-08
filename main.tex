@@ -130,7 +130,7 @@ Static descriptions of openings (``Sicilian Defense: 1.e4 c5'') are opaque to ca
 Blunder rates across six ELO brackets and four eras form a \emph{two-dimensional categorical} grid. We use a D3 heatmap with a diverging color scale (green $\to$ yellow $\to$ red) because color intensity lets the eye detect the diagonal gradient - the project's strongest finding - perceptually immediately. This pattern, showing that middle-rated players improved the most, would require careful serial scanning in a numerical table.
 
 \textbf{Section 5 - Game Length Distribution.}
-Game duration is a \emph{continuous distribution}, so we use normalized area curves to preserve the full distribution shape. This reveals the distinctive comb-like peaks at time-control boundaries (ply 81, 120, 160). Normalizing each era independently makes their shapes visually comparable despite unequal sample sizes.
+Game duration is a \emph{continuous distribution}, so we use normalized area curves to preserve the full distribution shape. The curves reveal a broad concentration around plies 45-60 followed by a long right tail, while their heavy overlap shows that the overall shape changed little across eras. Normalizing each era independently makes these small distribution shifts visually comparable despite unequal sample sizes.
 
 \begin{figure}[H]
 \centering
@@ -232,7 +232,7 @@ The rating-signal section serves three roles. First, it \emph{validates} the dat
 
   \item \textbf{The clearest AI-era improvement is fewer blunders.} Blunder rates decline across every rating bracket, with the largest gains in the 1400-2200 range. This suggests that intermediate and advanced club players benefit most from accessible post-game engine analysis, while elite players improve less because their baseline accuracy was already high.
 
-  \item \textbf{Game length is shaped more by playing conditions than by AI.} The length distribution keeps a comb-like structure with peaks near familiar time-control boundaries, especially around ply 81 and ply 120. This indicates that practical constraints such as clock pressure, resignation timing, and time-control design explain game duration better than engine influence alone.
+  \item \textbf{Game length changed only slightly across eras.} Most games end between roughly 45 and 60 ply, followed by a long tail of less frequent extended games. Median length falls from 65 ply before AI to 62-63 ply in the later eras, but the curves overlap heavily. The data therefore supports a modest shortening rather than a fundamental change in game duration.
 
   \item \textbf{Piece placement stayed spatially stable, but became more concentrated.} The same natural development squares dominate in every era: knights cluster on c3/f3/c6/f6, while bishops often appear on active diagonals and fianchetto squares. The stronger change is not location but concentration, with later eras showing tighter hot spots around efficient development squares.
 
@@ -250,7 +250,7 @@ The Lichess database is much larger than what we could download or process fully
 To make the pipeline feasible, we used a two-stage strategy: first, a fast scan rejected games without engine evaluations and filled balanced period-ELO buckets; second, only the sampled games were fully parsed with \texttt{python-chess}. Even with this reduction, preprocessing required careful memory control and long runtime. Raw opening trees also became too large for the web interface (160k-178k nodes), so heuristic pruning was necessary to keep the visualization responsive. The modern era (2024-25) has fewer available months than earlier eras, making its opening tree naturally sparser.
 
 \textbf{Design challenges.}
-Choosing the right visualization for each data type required iteration. Early prototypes used tree diagrams for openings (unreadable at scale), bar charts for blunder rates (hard to compare across cells), and a single line chart for game length (time-control spikes were invisible without zoom). The current sunburst/heatmap designs emerged from testing each against the question it needed to answer.
+Choosing the right visualization for each data type required iteration. Early prototypes used tree diagrams for openings (unreadable at scale), bar charts for blunder rates (hard to compare across cells), and raw game-length counts that made eras difficult to compare because their sample sizes differed. The current sunburst, heatmap, and normalized distribution designs emerged from testing each against the question it needed to answer.
 
 \textbf{ML limitations.}
 The ACPL-only model's negative $R^2$ on raw data highlights that a single game's ACPL is an extremely noisy proxy for long-term rating; the multi-feature model ($R^2 = 0.31$) is better but still far from precise. The bot has fixed strength ($\sim$1300), so the game-result prior is uninformative for players rated far above or below that level. The local fallback evaluation uses piece-square tables and depth-2 search, which is a coarse approximation of true engine evaluation; however, the primary API path uses Stockfish depth 12, matching the evaluation quality of the training annotations.

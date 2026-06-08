@@ -7,7 +7,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  ReferenceLine,
 } from 'recharts';
 import { PERIOD_COLORS_BY_LABEL } from '../data/constants';
 
@@ -228,18 +227,6 @@ export default function GameLength({ data }) {
             label={{ value: 'Games ending (%)', angle: -90, position: 'insideLeft', fill: '#6b6d7b' }}
           />
           <Tooltip content={<CustomTooltip />} />
-          <ReferenceLine
-            x={80}
-            stroke="#94a3b8"
-            strokeDasharray="4 4"
-            label={{ value: 'Move 40', position: 'insideTopRight', fill: '#94a3b8', fontSize: 11 }}
-          />
-          <ReferenceLine
-            x={120}
-            stroke="#94a3b8"
-            strokeDasharray="4 4"
-            label={{ value: 'Move 60', position: 'insideTopRight', fill: '#94a3b8', fontSize: 11 }}
-          />
           {multiEra ? (
             <>
               {visiblePeriods.map((p) => (

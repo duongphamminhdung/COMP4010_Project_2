@@ -9,7 +9,7 @@ from shiny import Inputs, Outputs, Session, module, reactive, render, ui
 from shinywidgets import output_widget, render_plotly
 
 from shiny_app.data import DISPLAY_COLORS, PERIOD_DISPLAY, PERIOD_ORDER, AppData
-from shiny_app.theme import COLORS, apply_plotly_theme, rgba
+from shiny_app.theme import apply_plotly_theme, rgba
 from shiny_app.ui_helpers import chart_shell, insight_box, metric_card, section_intro
 
 
@@ -126,18 +126,6 @@ def game_length_server(
                     hovertemplate=f"<b>{label}</b><br>Ply %{{x}}<br>%{{y:.2f}}% of games<extra></extra>",
                 )
             )
-        fig.add_vline(
-            x=80,
-            line_dash="dot",
-            line_color=COLORS["text_muted"],
-            annotation_text="Move 40",
-        )
-        fig.add_vline(
-            x=120,
-            line_dash="dot",
-            line_color=COLORS["text_muted"],
-            annotation_text="Move 60",
-        )
         apply_plotly_theme(fig, margin={"l": 52, "r": 18, "t": 28, "b": 48})
         fig.update_layout(
             xaxis={"title": "Ply (half-move)", "gridcolor": "#3d3b38"},
